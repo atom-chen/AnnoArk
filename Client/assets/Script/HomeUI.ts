@@ -1,6 +1,8 @@
 import CsvMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
+import { DataMgr } from "./DataMgr";
+import WorldUI from "./WorldUI";
 
 const {ccclass, property} = cc._decorator;
 
@@ -11,12 +13,15 @@ export default class HomeUI extends BaseUI {
         HomeUI.Instance = this;
     }
     
-    onMode0BtnClick() {
-        MainCtrl.Instance.gotoMode0();
+    onClaim(event, index: string) {
+        switch(index) {
+            case '0':{
+                DataMgr.arkSize = 10;
+                CsvMain.EnterUI(WorldUI);
+                break;
+            }
+        }
     }
     
-    onMode1BtnClick() {
-        MainCtrl.Instance.gotoMode1();
-    }
     
 }
