@@ -1,5 +1,6 @@
 import CsvMain from "./CvsMain";
 import BaseUI from "./BaseUI";
+import WorldUI from "./WorldUI";
 
 const {ccclass, property} = cc._decorator;
 
@@ -11,4 +12,7 @@ export default class ArkUI extends BaseUI {
     }
     
     
+    onGotoWorldClick() {
+        CsvMain.EnterUI(WorldUI);
+    }
 }
