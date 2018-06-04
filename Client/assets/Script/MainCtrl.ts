@@ -14,12 +14,25 @@ export default class MainCtrl extends cc.Component {
     }
 
     
-
-    energy = 0;
+    
 
     start() {
         CsvMain.EnterUI(HomeUI);
         console.log('goto home')
+
+        //加载数据
+        cc.loader.loadRes('Building', function (err, txt) {
+            console.log('Building loaded');
+            DataMgr.BuildingConfig = txt;
+        }.bind(this));
+        cc.loader.loadRes('Cargo', function (err, txt) {
+            console.log('Cargo loaded');
+            DataMgr.CargoConfig = txt;
+        }.bind(this));
+        cc.loader.loadRes('Tech', function (err, txt) {
+            console.log('Tech loaded');
+            DataMgr.TechConfig = txt;
+        }.bind(this));
     }
 
 
@@ -43,7 +56,7 @@ export default class MainCtrl extends cc.Component {
         let othersData: UserData[] = [];
         
         let user = new UserData();
-        user.arkSize = 40;
+        user.arkSize = 41;
         user.arkLocationX = 0;
         user.arkLocationY = 0;
         user.speed = 0;

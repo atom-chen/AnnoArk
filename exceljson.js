@@ -7,7 +7,7 @@ raws = [
 raws.forEach(x => {
     node_xj({
         input: "Client/assets/Csv/" + x + ".xlsx",  // input xls
-        output: "Client/assets/Json/" + x + ".json", // output json
+        output: "Client/assets/resources/" + x + ".json", // output json
         //sheet: "sheetname"  // specific sheetname
     }, function (err, result) {
         if (err) {

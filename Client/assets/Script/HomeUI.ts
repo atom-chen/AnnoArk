@@ -34,7 +34,7 @@ export default class HomeUI extends BaseUI {
     onClaim(event, index: string) {
         switch (index) {
             case '0': {
-                DataMgr.myData = MainCtrl.Instance.generateNewArk(10);
+                DataMgr.myData = MainCtrl.Instance.generateNewArk(9);
                 CsvMain.EnterUI(WorldUI);
                 break;
             }
@@ -47,6 +47,7 @@ export default class HomeUI extends BaseUI {
                 break;
             }
         }
+        DataMgr.myBuildingData = [];
     }
 
 
