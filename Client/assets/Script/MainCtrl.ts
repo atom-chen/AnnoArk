@@ -13,6 +13,8 @@ export default class MainCtrl extends cc.Component {
         this.fetchRemoteData();
     }
 
+    
+
     energy = 0;
 
     start() {
