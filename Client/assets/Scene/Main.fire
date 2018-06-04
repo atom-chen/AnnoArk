@@ -339,7 +339,7 @@
       }
     ],
     "_tag": -1,
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 52
@@ -415,7 +415,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 341,
+      "width": 341.39,
       "height": 60
     },
     "_rotationX": 0,
@@ -1579,7 +1579,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 179,
+      "width": 178.76,
       "height": 64
     },
     "_rotationX": 0,
@@ -1731,7 +1731,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 460,
+      "width": 460.05,
       "height": 60
     },
     "_rotationX": 0,
@@ -2129,7 +2129,7 @@
       }
     ],
     "_tag": -1,
-    "_active": false,
+    "_active": true,
     "_components": [
       {
         "__id__": 112
@@ -2718,7 +2718,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 40,
+      "width": 40.02,
       "height": 40
     },
     "_rotationX": 0,
@@ -3123,7 +3123,7 @@
     "target": {
       "__id__": 53
     },
-    "component": "HomeUI",
+    "component": "WorldUI",
     "handler": "onMode1BtnClick",
     "customEventData": ""
   },
@@ -3513,7 +3513,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 13,
+      "width": 13.32,
       "height": 40
     },
     "_rotationX": 0,
@@ -3778,7 +3778,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 23,
+      "width": 23.36,
       "height": 40
     },
     "_rotationX": 0,
@@ -4322,7 +4322,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 22,
+      "width": 21.95,
       "height": 40
     },
     "_rotationX": 0,
@@ -8982,7 +8982,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 83,
+      "width": 83.38,
       "height": 48
     },
     "_rotationX": 0,
