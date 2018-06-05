@@ -7,3 +7,12 @@ npm install
 ```
 node exceljson.js ...
 ```
+### deploy
+```
+node deploy_neb.js ROOT
+
+note:
+-ROOT
+-- index.html
+-- ...
+```
