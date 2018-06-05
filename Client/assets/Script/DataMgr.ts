@@ -12,6 +12,7 @@ export class DataMgr {
     static TechConfig;
 
     static changed = false;
+    static populationGrowPerMin = 0;
 
     static readData() {
         try {
@@ -36,6 +37,10 @@ export class DataMgr {
     static clearData() {
         cc.sys.localStorage.removeItem('user0');
         cc.sys.localStorage.removeItem('user0Building');
+    }
+
+    static HumanConfig = {
+
     }
 }
 

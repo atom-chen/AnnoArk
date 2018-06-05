@@ -48,9 +48,11 @@ export default class DialogPanel extends cc.Component {
     }
     onBtn0Click() {
         if (this.func0) this.func0();
+        else this.hide();
     }
     onBtn1Click() {
         if (this.func1) this.func1();
+        else this.hide();
     }
     show() {
         this.node.active = true;

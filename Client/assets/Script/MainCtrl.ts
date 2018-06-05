@@ -116,5 +116,27 @@ export default class MainCtrl extends cc.Component {
                 }
             });
         }
+        if (DataMgr.myData && DataMgr.myCargoData) {
+            //检查食物
+            let needToConsumeFood = DataMgr.myData.population * 2 / 60 * dt;
+            DataMgr.CargoConfig.forEach(info => {
+                let data = DataMgr.myCargoData.find(data => data.id == info.id);
+                if (data && data.amount > 0) {
+                    let consumption = Math.min(needToConsumeFood, data.amount);
+                    needToConsumeFood -= consumption;
+                    data.amount -= needToConsumeFood;
+                }
+            });
+            if (needToConsumeFood <= 0) {
+                let newPopulationPerMin = (10 + Math.sqrt(DataMgr.myData.population)) / 10 * 3;
+                let perDt = newPopulationPerMin / 60 * dt;
+                if (Math.random() < perDt) {
+                    //新人口
+                    DataMgr.myData.population += 1;
+                    DataMgr.idleWorkers += 1;
+                }
+                DataMgr.populationGrowPerMin = newPopulationPerMin;
+            }
+        }
     }
 }

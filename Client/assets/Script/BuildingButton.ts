@@ -1,6 +1,7 @@
 import BuildPanel from "./BuildPanel";
 import ArkUI from "./ArkUI";
 import { BuildingInfo, DataMgr } from "./DataMgr";
+import DialogPanel from "./DialogPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -21,22 +22,14 @@ export default class BuildingButton extends cc.Component {
         this.info = info;
         this.lblName.string = info.Name;
         this.lblSize.string = info.length + '*' + info.width;
-        
+
         let strInfoLines = [];
         for (let i = 0; i < 4; i++) {
-            const rawid = info['Raw' + i];
+            const rawid = info['BuildMat' + i];
             if (rawid && rawid.length > 0) {
-                const rawRate = info['Raw' + i + 'Rate'];
+                const count = info['BuildMat' + i + 'Count'];
                 const cargoInfo = DataMgr.CargoConfig.find(c => c.id == rawid);
-                strInfoLines.push(`消耗 ${rawRate}${cargoInfo.Name}/min`);
-            }
-        }
-        for (let i = 0; i < 4; i++) {
-            const outid = info['Out' + i];
-            if (outid && outid.length > 0) {
-                const outRate = info['Out' + i + 'Rate'];
-                const cargoInfo = DataMgr.CargoConfig.find(c => c.id == outid);
-                strInfoLines.push(`生产 ${outRate}${cargoInfo.Name}/min`);
+                strInfoLines.push(`${cargoInfo.Name}*${count}`);
             }
         }
         if (strInfoLines.length > 0) {
@@ -53,7 +46,28 @@ export default class BuildingButton extends cc.Component {
     }
 
     onClick() {
-        BuildPanel.Hide();
-        ArkUI.Instance.enterBuildMode(this.info);
+        //检查建筑材料
+        let buildMats = [];
+        for (let i = 0; i < 4; i++) {
+            let mat = this.info['BuildMat' + i];
+            if (mat && mat.length > 0) {
+                let count = this.info['BuildMat' + i + 'Count'];
+                buildMats.push([mat, count]);
+            }
+        }
+        let enough = true;
+        buildMats.forEach(mat => {
+            let cargoData = DataMgr.myCargoData.find(data => data.id == mat[0]);
+            if (cargoData.amount < mat[1]) {
+                enough = false;
+            }
+        })
+
+        if (enough) {
+            BuildPanel.Hide();
+            ArkUI.Instance.enterBuildMode(this.info);
+        } else {
+            DialogPanel.PopupWith1Button('建筑材料不足', '', '确定', null);
+        }
     }
 }

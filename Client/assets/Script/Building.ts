@@ -18,6 +18,10 @@ export default class Building extends cc.Component {
     lblWorkers: cc.Label = null;
     @property(cc.Node)
     nodeGear: cc.Node = null;
+    @property(cc.Button)
+    btnDecWork: cc.Button = null;
+    @property(cc.Button)
+    btnIncWork: cc.Button = null;
 
     setInfo(info: BuildingInfo, data: BuildingData) {
         this.info = info;
@@ -59,7 +63,7 @@ export default class Building extends cc.Component {
             this.data.workers -= reduce;
             DataMgr.idleWorkers += reduce;
         } else if (arg == '+') {
-            let add = Math.min(DataMgr.idleWorkers, 1);
+            let add = Math.min(DataMgr.idleWorkers, 1, this.info['MaxHuman'] - this.data.workers);
             this.data.workers += add;
             DataMgr.idleWorkers -= add;
         }
@@ -70,5 +74,7 @@ export default class Building extends cc.Component {
         if (this.data.isWorking) {
             this.nodeGear.rotation += 90 * this.data.workers * dt;
         }
+        this.btnDecWork.interactable = this.data.workers > 0;
+        this.btnIncWork.interactable = this.data.workers < this.info['MaxHuman'];
     }
 }

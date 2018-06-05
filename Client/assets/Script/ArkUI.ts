@@ -105,8 +105,7 @@ export default class ArkUI extends BaseUI {
         }
 
         this.cargoLabels['population'].string =
-            '人口   ' + DataMgr.myData.population.toFixed()
-            + '(闲置' + DataMgr.idleWorkers.toFixed() + ')';
+            `人口 ${DataMgr.myData.population} (闲置 ${DataMgr.idleWorkers}) 增长${DataMgr.populationGrowPerMin.toFixed(0)}/min`;
         for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
             const cargoInfo = DataMgr.CargoConfig[i];
             let data = DataMgr.myCargoData.find((value, index, arr) => {
@@ -220,7 +219,6 @@ export default class ArkUI extends BaseUI {
     }
     dragBlueprint(event: cc.Event.EventTouch) {
         let now = event.getLocation();
-        console.log('loc', now);
         let touchPosInArkMap = this.arkMap.convertToNodeSpaceAR(now);
         // this.blueprint.position = touchPosInArkMap;
         this.currentBlueprintIJ.i = Math.round(touchPosInArkMap.x / 100);
@@ -241,11 +239,33 @@ export default class ArkUI extends BaseUI {
         }
         if (overlap) return;
         //确定建造
-        this.createBuilding(this.currentHoldingBlueprint, this.currentBlueprintIJ);
-        if (this.currentHoldingBlueprint.id == 'road00001') {
-            this.currentBlueprintIJ.j += 1;
-        } else {
-            this.currentHoldingBlueprint = null;
+        //检查建筑材料
+        let buildMats = [];
+        for (let i = 0; i < 4; i++) {
+            let mat = this.currentHoldingBlueprint['BuildMat' + i];
+            if (mat && mat.length > 0) {
+                let count = this.currentHoldingBlueprint['BuildMat' + i + 'Count'];
+                buildMats.push([mat, count]);
+            }
+        }
+        let enough = true;
+        buildMats.forEach(mat => {
+            let cargoData = DataMgr.myCargoData.find(data => data.id == mat[0]);
+            if (cargoData.amount < mat[1]) {
+                enough = false;
+            }
+        })
+        if (enough) {
+            buildMats.forEach(mat => {
+                let cargoData = DataMgr.myCargoData.find(data => data.id == mat[0]);
+                cargoData.amount -= mat[1];
+            })
+            this.createBuilding(this.currentHoldingBlueprint, this.currentBlueprintIJ);
+            if (this.currentHoldingBlueprint.id == 'road00001') {
+                this.currentBlueprintIJ.j += 1;
+            } else {
+                this.currentHoldingBlueprint = null;
+            }
         }
     }
     onBtnCancelBuildClick() {

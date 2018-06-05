@@ -60,4 +60,8 @@ export default class HomeUI extends BaseUI {
         })
         CsvMain.EnterUI(WorldUI);
     }
+
+    onBookClick() {
+        console.log('哪有白皮书')
+    }
 }
