@@ -7,8 +7,7 @@
     "xls-to-json": "^0.5.0"
   },
   "devDependencies": {},
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fairwood/AnnoArk.git"

@@ -3,3 +3,7 @@
 ```
 npm install
 ```
+### excel2json
+```
+node exceljson.js ...
+```
