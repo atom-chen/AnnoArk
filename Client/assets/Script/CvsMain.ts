@@ -13,6 +13,8 @@ export default class CsvMain extends cc.Component {
     }
 
     @property(cc.Node)
+    fitter: cc.Node = null;
+    @property(cc.Node)
     uiContainer: cc.Node = null;
 
     static EnterUI(uiType: any) {
@@ -25,22 +27,21 @@ export default class CsvMain extends cc.Component {
         })
     }
 
-    // update() {
-    //     let visibleSize = cc.view.getVisibleSize();
-    //     console.log('view, size', cc.view.getVisibleSize(),
-    //         this.node.position,
-    //         this.node.getContentSize());
-    //     if (visibleSize.width >= visibleSize.height) {
-    //         this.node.rotation = 0;
-    //         this.node.scale = 1;
-    //         this.node.setContentSize(1080 / visibleSize.height * visibleSize.width, 1080);
-    //         this.node.position = new cc.Vec2(visibleSize.width/2,visibleSize.height /2);
-    //     } else {
-    //         this.node.rotation = 90;
-    //         this.node.setContentSize(1080 / visibleSize.width * visibleSize.height, 1080);
-    //         this.node.position = new cc.Vec2(visibleSize.width/2,visibleSize.height/2);
-    //     console.log('this.node.position',this.node.position);
-    //     this.node.scale = visibleSize.width / 1080;
-    //     }
-    // }
+    lastVisibleSize;
+    update() {
+        let visibleSize = cc.view.getVisibleSize();
+        if (!this.lastVisibleSize || !visibleSize.equals(this.lastVisibleSize)) {
+            if (visibleSize.width >= visibleSize.height) {
+                this.fitter.rotation = 0;
+                this.fitter.scale = 1;
+                this.fitter.setContentSize(1080 / visibleSize.height * visibleSize.width, 1080);
+            } else {
+                this.fitter.rotation = 90;
+                this.fitter.setContentSize(1080 / visibleSize.width * visibleSize.height, 1080);
+                this.fitter.scale = visibleSize.width / 1080;
+            }
+            this.lastVisibleSize = visibleSize;
+            console.log('fit')
+        }
+    }
 }
