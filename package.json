@@ -1,0 +1,23 @@
+{
+  "name": "annoark",
+  "version": "1.0.0",
+  "description": "",
+  "main": "exceljson.js",
+  "dependencies": {
+    "xls-to-json": "^0.5.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fairwood/AnnoArk.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/fairwood/AnnoArk/issues"
+  },
+  "homepage": "https://github.com/fairwood/AnnoArk#readme"
+}
