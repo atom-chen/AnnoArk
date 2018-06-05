@@ -42,4 +42,8 @@ export default class BuildPanel extends cc.Component {
     static Hide() {
         BuildPanel.Instance.node.active = false;
     }
+
+    close() {
+        this.node.active = false;
+    }
 }

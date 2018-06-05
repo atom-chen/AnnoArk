@@ -1,8 +1,9 @@
 import CsvMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import WorldUI from "./WorldUI";
-import { DataMgr, BuildingInfo } from "./DataMgr";
+import { DataMgr, BuildingInfo, IJ, BuildingData } from "./DataMgr";
 import BuildPanel from "./BuildPanel";
+import Building from "./Building";
 
 const { ccclass, property } = cc._decorator;
 
@@ -33,10 +34,32 @@ export default class ArkUI extends BaseUI {
         }
 
         this.blueprint.on(cc.Node.EventType.TOUCH_MOVE, this.dragBlueprint.bind(this));
+
+        this.buildingTemplate.active = false;
+
+        let labelNode = cc.instantiate(this.cargoLabelTemplate);
+        labelNode.parent = this.cargoLabelContainer;
+        let label = labelNode.getComponent(cc.Label);
+        label.string = '人口';
+        this.cargoLabels['population'] = label;
+        DataMgr.CargoConfig.forEach(cargoInfo => {
+            let labelNode = cc.instantiate(this.cargoLabelTemplate);
+            labelNode.parent = this.cargoLabelContainer;
+            let label = labelNode.getComponent(cc.Label);
+            label.string = cargoInfo.Name;
+            this.cargoLabels[cargoInfo.id] = label;
+        });
+        this.cargoLabelTemplate.active = false;
     }
 
     @property(cc.Node)
     arkMap: cc.Node = null;
+
+    @property(cc.Node)
+    cargoLabelContainer: cc.Node = null;
+    @property(cc.Node)
+    cargoLabelTemplate: cc.Node = null;
+    cargoLabels = {};
 
     cells: Cell[][];
 
@@ -61,10 +84,14 @@ export default class ArkUI extends BaseUI {
             }
         }
 
-        DataMgr.myBuildingData.forEach(b => {
+        let workers = 0;
+        DataMgr.myBuildingData.forEach(data => {
             //b.id
             //b.i,j
+            workers += data.workers;
         });
+
+        DataMgr.idleWorkers = myData.population - workers;
     }
 
     refreshZoom() {
@@ -76,6 +103,19 @@ export default class ArkUI extends BaseUI {
             this.refreshData();
             DataMgr.changed = false;
         }
+
+        this.cargoLabels['population'].string =
+            '人口   ' + DataMgr.myData.population.toFixed()
+            + '(闲置' + DataMgr.idleWorkers.toFixed() + ')';
+        for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
+            const cargoInfo = DataMgr.CargoConfig[i];
+            let data = DataMgr.myCargoData.find((value, index, arr) => {
+                return value.id == cargoInfo.id;
+            }
+            );
+            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + data.amount.toFixed();
+        }
+
         let prog = this.sldZoom.progress;
         if (!this.pressingZoomSlider) {
             if (prog > 0.5) {
@@ -99,15 +139,23 @@ export default class ArkUI extends BaseUI {
 
         if (this.currentHoldingBlueprint) {
             this.blueprint.active = true;
-            this.blueprint.position = new cc.Vec2(this.currentBlueprintIJ.i * 100-50, this.currentBlueprintIJ.j * 100-50);
+            this.blueprint.position = new cc.Vec2(this.currentBlueprintIJ.i * 100 - 50, this.currentBlueprintIJ.j * 100 - 50);
             this.blueprint.setContentSize(this.currentHoldingBlueprint.length * 100, this.currentHoldingBlueprint.width * 100);
+            let overlap = false;
+            this.blueprintIndicator.clear();
             for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
                 for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
-                    let cell = this.cells[this.currentBlueprintIJ.i][this.currentBlueprintIJ.j];
+                    let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
                     this.blueprintIndicator.fillColor = cell.building ? cc.Color.RED : cc.Color.GREEN;
-                    this.blueprintIndicator.fillRect(i*100, j*100, 100, 100);
+                    if (cell.building) overlap = true;
+                    this.blueprintIndicator.fillRect(i * 100, j * 100, 100, 100);
                 }
             }
+            this.grpBuild.active = true;
+            this.btnConfirmBuild.interactable = !overlap;
+        } else {
+            this.blueprint.active = false;
+            this.grpBuild.active = false;
         }
     }
 
@@ -157,6 +205,10 @@ export default class ArkUI extends BaseUI {
 
     //Build
     @property(cc.Node)
+    buildingTemplate: cc.Node = null;
+    @property(cc.Node)
+    buildingContainer: cc.Node = null;
+    @property(cc.Node)
     blueprint: cc.Node = null;
     @property(cc.Graphics)
     blueprintIndicator: cc.Graphics = null;
@@ -174,17 +226,53 @@ export default class ArkUI extends BaseUI {
         this.currentBlueprintIJ.i = Math.round(touchPosInArkMap.x / 100);
         this.currentBlueprintIJ.j = Math.round(touchPosInArkMap.y / 100);
     }
-}
-
-class IJ {
-    i: number;
-    j: number;
-
-    static get ZERO(): IJ {
-        return { i: 0, j: 0 };
+    @property(cc.Node)
+    grpBuild: cc.Node = null;
+    @property(cc.Button)
+    btnConfirmBuild: cc.Button = null;
+    onBtnConfirmBuildClick() {
+        //检查重叠
+        let overlap = false;
+        for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
+            for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
+                let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
+                if (cell.building) overlap = true;
+            }
+        }
+        if (overlap) return;
+        //确定建造
+        this.createBuilding(this.currentHoldingBlueprint, this.currentBlueprintIJ);
+        if (this.currentHoldingBlueprint.id == 'road00001') {
+            this.currentBlueprintIJ.j += 1;
+        } else {
+            this.currentHoldingBlueprint = null;
+        }
+    }
+    onBtnCancelBuildClick() {
+        this.currentHoldingBlueprint = null;
+    }
+    createBuilding(blueprint: BuildingInfo, ij: IJ) {
+        let buildingNode = cc.instantiate(this.buildingTemplate);
+        buildingNode.parent = this.buildingContainer;
+        let building = buildingNode.getComponent(Building);
+        let data = new BuildingData();
+        data.id = blueprint.id;
+        data.ij = ij.clone();
+        data.workers = 0;
+        DataMgr.myBuildingData.push(data);
+        building.setInfo(blueprint, data);
+        buildingNode.position = new cc.Vec2(ij.i * 100 - 50, ij.j * 100 - 50);
+        buildingNode.active = true;
+        for (let i = 0; i < blueprint.length; i++) {
+            for (let j = 0; j < blueprint.width; j++) {
+                let cell = this.cells[ij.i + i][ij.j + j];
+                cell.building = building;
+            }
+        }
     }
 }
+
 class Cell {
     isLand = false;
-    building: object = null;
+    building: Building = null;
 }

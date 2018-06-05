@@ -1,6 +1,6 @@
 import CsvMain from "./CvsMain";
 import HomeUI from "./HomeUI";
-import { DataMgr, UserData } from "./DataMgr";
+import { DataMgr, UserData, CargoData } from "./DataMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -13,8 +13,8 @@ export default class MainCtrl extends cc.Component {
         this.fetchRemoteData();
     }
 
-    
-    
+
+
 
     start() {
         CsvMain.EnterUI(HomeUI);
@@ -51,10 +51,10 @@ export default class MainCtrl extends cc.Component {
         user.nickname = "新玩家";
         return user;
     }
-    
-    fetchRemoteData(){
+
+    fetchRemoteData() {
         let othersData: UserData[] = [];
-        
+
         let user = new UserData();
         user.arkSize = 41;
         user.arkLocationX = 0;
@@ -66,5 +66,55 @@ export default class MainCtrl extends cc.Component {
 
         DataMgr.othersData = othersData;
         DataMgr.changed = true;
+    }
+
+
+    update(dt: number) {
+        if (DataMgr.myBuildingData) {
+            DataMgr.myBuildingData.forEach(buildingData => {
+                buildingData.isWorking = false;
+                if (buildingData.workers <= 0) return;
+                let buildingInfo = DataMgr.BuildingConfig.find((value) => {
+                    return value.id == buildingData.id;
+                });
+                let raws = [];
+                for (let i = 0; i < 4; i++) {
+                    let rawid = buildingInfo['Raw' + i];
+                    if (rawid && rawid.length > 0) {
+                        raws.push([rawid, buildingInfo['Raw' + i + 'Rate'] / 60 * dt * buildingData.workers]);
+                    }
+                }
+                let enough = true;
+                raws.forEach(raw => {
+                    if (!enough) return;
+                    let cargoData = DataMgr.myCargoData.find(c => c.id == raw[0]);
+                    if (cargoData && cargoData.amount > raw[1]) {
+                        raw.push(cargoData);
+                    } else {
+                        enough = false;
+                    }
+                });
+                if (enough) {
+                    //生产
+                    raws.forEach(raw => {
+                        raw[2].amount -= raw[1];
+                    });
+                    for (let i = 0; i < 4; i++) {
+                        let outid = buildingInfo['Out' + i];
+                        if (outid && outid.length > 0) {
+                            let cargoData = DataMgr.myCargoData.find(c => c.id == outid);
+                            if (!cargoData) {
+                                cargoData = new CargoData();
+                                cargoData.id = outid;
+                                cargoData.amount = 0;
+                                DataMgr.myCargoData.push(cargoData);
+                            }
+                            cargoData.amount += buildingInfo['Out' + i + 'Rate'] / 60 * dt * buildingData.workers;
+                        }
+                    }
+                    buildingData.isWorking = true;
+                }
+            });
+        }
     }
 }

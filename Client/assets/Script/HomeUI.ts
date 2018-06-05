@@ -1,7 +1,7 @@
 import CsvMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
-import { DataMgr, UserData } from "./DataMgr";
+import { DataMgr, UserData, CargoData } from "./DataMgr";
 import WorldUI from "./WorldUI";
 
 const { ccclass, property } = cc._decorator;
@@ -35,7 +35,7 @@ export default class HomeUI extends BaseUI {
         switch (index) {
             case '0': {
                 DataMgr.myData = MainCtrl.Instance.generateNewArk(9);
-                CsvMain.EnterUI(WorldUI);
+                this.enterGameWithArk();
                 break;
             }
             case '1': {
@@ -50,5 +50,14 @@ export default class HomeUI extends BaseUI {
         DataMgr.myBuildingData = [];
     }
 
-
+    enterGameWithArk() {
+        DataMgr.myCargoData = [];
+        DataMgr.CargoConfig.forEach(cargoInfo=>{
+            let data = new CargoData();
+            data.id = cargoInfo.id;
+            data.amount = 0;
+            DataMgr.myCargoData.push(data);
+        })
+        CsvMain.EnterUI(WorldUI);
+    }
 }

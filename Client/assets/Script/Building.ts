@@ -1,27 +1,28 @@
-import BuildPanel from "./BuildPanel";
-import ArkUI from "./ArkUI";
-import { BuildingInfo, DataMgr } from "./DataMgr";
+import { BuildingInfo, BuildingData, DataMgr } from "./DataMgr";
 
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class BuildingButton extends cc.Component {
+export default class Building extends cc.Component {
+
+    info: BuildingInfo;
+    data: BuildingData;
 
     @property(cc.Label)
     lblName: cc.Label = null;
     @property(cc.Label)
-    lblSize: cc.Label = null;
-
-    @property(cc.Label)
     lblConsumption: cc.Label = null;
+    @property(cc.Label)
+    lblOutput: cc.Label = null;
+    @property(cc.Label)
+    lblWorkers: cc.Label = null;
+    @property(cc.Node)
+    nodeGear: cc.Node = null;
 
-    info: BuildingInfo;
-
-    setAndRefresh(info: BuildingInfo) {
+    setInfo(info: BuildingInfo, data: BuildingData) {
         this.info = info;
+        this.data = data;
         this.lblName.string = info.Name;
-        this.lblSize.string = info.length + '*' + info.width;
-        
         let strInfoLines = [];
         for (let i = 0; i < 4; i++) {
             const rawid = info['Raw' + i];
@@ -49,11 +50,25 @@ export default class BuildingButton extends cc.Component {
         } else {
             this.lblConsumption.string = '';
         }
-
+        this.node.setContentSize(info.length * 100, info.width * 100);
     }
 
-    onClick() {
-        BuildPanel.Hide();
-        ArkUI.Instance.enterBuildMode(this.info);
+    changeWorkers(event, arg) {
+        if (arg == '-') {
+            let reduce = Math.min(this.data.workers, 1);
+            this.data.workers -= reduce;
+            DataMgr.idleWorkers += reduce;
+        } else if (arg == '+') {
+            let add = Math.min(DataMgr.idleWorkers, 1);
+            this.data.workers += add;
+            DataMgr.idleWorkers -= add;
+        }
+    }
+
+    update(dt: number) {
+        this.lblWorkers.string = '工人 ' + this.data.workers.toFixed();
+        if (this.data.isWorking) {
+            this.nodeGear.rotation += 90 * this.data.workers * dt;
+        }
     }
 }
