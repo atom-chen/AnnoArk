@@ -28,7 +28,7 @@
   "renderMode": "0",
   "startScene": "ebbc6660-735d-48a3-a632-88ebaa1440ac",
   "title": "NebulastTrek",
-  "webOrientation": "auto",
+  "webOrientation": "landscape",
   "wechatgame": {
     "REMOTE_SERVER_ROOT": "",
     "appid": "wx6ac3f5090a6b99c5",
