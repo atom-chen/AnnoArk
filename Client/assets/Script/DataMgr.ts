@@ -1,3 +1,5 @@
+import WorldUI from "./WorldUI";
+
 export class DataMgr {
 
     static myData: UserData;
@@ -7,12 +9,14 @@ export class DataMgr {
     static idleWorkers: number = 0;
     static currentWorkingTech: string;
     static populationLimit: number = 0;
+    static aboveIronMine = false;
 
     static othersData: UserData[] = [];
 
     static BuildingConfig: BuildingInfo[];
     static CargoConfig: CargoInfo[];
     static TechConfig: TechInfo[];
+    static IronMineConfig: MineInfo[];
 
     static changed = false;
     static populationGrowPerMin = 0;
@@ -96,6 +100,10 @@ export class TechData {
     id: string;
     filledWork: number;
     finished: boolean;
+}
+export class MineInfo {
+    polygonCollider: cc.PolygonCollider;
+    points: cc.Vec2[];
 }
 export class IJ {
     i: number = 0;

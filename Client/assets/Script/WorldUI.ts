@@ -29,14 +29,8 @@ export default class WorldUI extends BaseUI {
         // cc.systemEvent.on(cc.SystemEvent.EventType.)
     }
 
-    @property(cc.Label)
-    lblEnergy: cc.Label = null;
-
-    @property(cc.Button)
-    btnPause: cc.Button = null;
-
     @property(cc.Node)
-    ingameRange: cc.Node = null;
+    mineContainer: cc.Node = null;
 
     @property(cc.Node)
     arkContainer: cc.Node = null;
@@ -59,6 +53,8 @@ export default class WorldUI extends BaseUI {
     }
 
     onEnable() {
+        if (!DataMgr.myData) return;
+        
         this.refreshData();
         this.refreshZoom();
     }

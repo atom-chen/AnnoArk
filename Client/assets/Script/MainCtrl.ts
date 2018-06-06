@@ -1,6 +1,6 @@
 import CvsMain from "./CvsMain";
 import HomeUI from "./HomeUI";
-import { DataMgr, UserData, CargoData } from "./DataMgr";
+import { DataMgr, UserData, CargoData, MineInfo } from "./DataMgr";
 import WorldUI from "./WorldUI";
 
 const { ccclass, property } = cc._decorator;
@@ -12,6 +12,7 @@ export default class MainCtrl extends cc.Component {
         MainCtrl.Instance = this;
         DataMgr.readData();
         this.fetchRemoteData();
+        CvsMain.Instance.uiContainer.getChildByName('WorldUI').active = true;
     }
 
     start() {
@@ -31,6 +32,20 @@ export default class MainCtrl extends cc.Component {
             console.log('Tech loaded', txt);
             DataMgr.TechConfig = txt;
         }.bind(this));
+        DataMgr.IronMineConfig = [];
+        WorldUI.Instance.mineContainer.children.forEach(c => {
+            const polygon = c.getComponent(cc.PolygonCollider);
+            if (polygon) {
+                const info = new MineInfo();
+                info.polygonCollider = polygon;
+                const points = [];
+                polygon.points.forEach(p => {
+                    points.push(polygon.node.position.add(polygon.offset).add(p));
+                });
+                info.points = points;
+                DataMgr.IronMineConfig.push(info);
+            }
+        });
     }
 
 
@@ -73,7 +88,16 @@ export default class MainCtrl extends cc.Component {
         if (DataMgr.myData) {
             DataMgr.populationLimit = 0;
             DataMgr.researchRatePerMin = 0;
+            DataMgr.aboveIronMine = false;
             let totalWorkers = 0;
+
+            //检测所属矿区
+            DataMgr.IronMineConfig.forEach(m => {
+                if (cc.Intersection.pointInPolygon(DataMgr.myData.arkLocation, m.points)) {
+                    DataMgr.aboveIronMine = true;
+                }
+            });
+
             if (DataMgr.myBuildingData) {
                 DataMgr.myBuildingData.forEach(buildingData => {
                     buildingData.isWorking = false;
@@ -96,13 +120,15 @@ export default class MainCtrl extends cc.Component {
                             DataMgr.researchRatePerMin += buildingData.workers * 1;
                         }
                     } else {
+                        //生产
                         if (buildingData.workers <= 0) return;
+                        if (buildingData.id == 'ironcoll28' && !DataMgr.aboveIronMine) return;
                         let buildingInfo = DataMgr.BuildingConfig.find(info => info.id == buildingData.id);
                         let raws = [];
                         for (let i = 0; i < 4; i++) {
                             let rawid = buildingInfo['Raw' + i];
                             if (rawid && rawid.length > 0) {
-                                raws.push([rawid, buildingInfo['Raw' + i + 'Rate'] / 60 * dt * buildingData.workers]);
+                                raws.push([rawid, buildingInfo['Raw' + i + 'Rate'] / buildingInfo['MaxHuman'] / 60 * dt * buildingData.workers]);
                             }
                         }
                         let enough = true;
@@ -130,7 +156,7 @@ export default class MainCtrl extends cc.Component {
                                         cargoData.amount = 0;
                                         DataMgr.myCargoData.push(cargoData);
                                     }
-                                    cargoData.amount += buildingInfo['Out' + i + 'Rate'] / 60 * dt * buildingData.workers;
+                                    cargoData.amount += buildingInfo['Out' + i + 'Rate'] / buildingInfo['MaxHuman'] / 60 * dt * buildingData.workers;
                                 }
                             }
                             buildingData.isWorking = true;
@@ -166,7 +192,7 @@ export default class MainCtrl extends cc.Component {
                     let dieCountPerMin = Math.max(0, DataMgr.myData.population - 10) * lackFoodProp;
                     let perDt = dieCountPerMin / 60 * dt;
                     if (Math.random() < perDt) {
-                        //死亡1个
+                        //死1个
                         if (DataMgr.idleWorkers > 0) {
                             DataMgr.myData.population -= 1;
                             DataMgr.idleWorkers -= 1;

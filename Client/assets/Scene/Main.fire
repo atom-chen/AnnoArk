@@ -6160,9 +6160,9 @@
       "__id__": 55
     },
     "_enabled": true,
-    "lblEnergy": null,
-    "btnPause": null,
-    "ingameRange": null,
+    "mineContainer": {
+      "__id__": 57
+    },
     "arkContainer": {
       "__id__": 63
     },
