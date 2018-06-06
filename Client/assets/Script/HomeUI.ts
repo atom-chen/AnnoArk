@@ -1,7 +1,7 @@
 import CsvMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
-import { DataMgr, UserData, CargoData } from "./DataMgr";
+import { DataMgr, UserData, CargoData, TechData } from "./DataMgr";
 import WorldUI from "./WorldUI";
 
 const { ccclass, property } = cc._decorator;
@@ -57,6 +57,14 @@ export default class HomeUI extends BaseUI {
             data.id = cargoInfo.id;
             data.amount = 0;
             DataMgr.myCargoData.push(data);
+        })
+        DataMgr.myTechData = [];
+        DataMgr.TechConfig.forEach(techInfo=>{
+            let data = new TechData();
+            data.id = techInfo.id;
+            data.filledWork = 0;
+            data.finished = false;
+            DataMgr.myTechData.push(data);
         })
         CsvMain.EnterUI(WorldUI);
     }

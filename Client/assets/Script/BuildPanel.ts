@@ -9,7 +9,6 @@ export default class BuildPanel extends cc.Component {
     onLoad() {
         BuildPanel.Instance = this;
         this.node.active = false;
-        console.log('BP onL')
     }
 
     @property(cc.Node)

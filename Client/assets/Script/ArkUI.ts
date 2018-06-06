@@ -4,6 +4,8 @@ import WorldUI from "./WorldUI";
 import { DataMgr, BuildingInfo, IJ, BuildingData } from "./DataMgr";
 import BuildPanel from "./BuildPanel";
 import Building from "./Building";
+import TechPanel from "./TechPanel";
+import DialogPanel from "./DialogPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -35,7 +37,9 @@ export default class ArkUI extends BaseUI {
 
         this.blueprint.on(cc.Node.EventType.TOUCH_MOVE, this.dragBlueprint.bind(this));
 
-        this.buildingTemplate.active = false;
+        this.workshopTemplate.active = false;
+        this.roadTemplate.active = false;
+        this.houseTemplate.active = false;
 
         let labelNode = cc.instantiate(this.cargoLabelTemplate);
         labelNode.parent = this.cargoLabelContainer;
@@ -50,6 +54,8 @@ export default class ArkUI extends BaseUI {
             this.cargoLabels[cargoInfo.id] = label;
         });
         this.cargoLabelTemplate.active = false;
+
+        // this.node.getChildByName('GrpBuildInfo').getChildByName('DeselectPad').on(cc.Node.EventType.TOUCH_START, ()=>{ArkUI.Instance.deselectBuilding();});
     }
 
     @property(cc.Node)
@@ -92,6 +98,8 @@ export default class ArkUI extends BaseUI {
         });
 
         DataMgr.idleWorkers = myData.population - workers;
+
+        this.deselectBuilding();
     }
 
     refreshZoom() {
@@ -105,13 +113,12 @@ export default class ArkUI extends BaseUI {
         }
 
         this.cargoLabels['population'].string =
-            `人口 ${DataMgr.myData.population} (闲置 ${DataMgr.idleWorkers}) 增长${DataMgr.populationGrowPerMin.toFixed(0)}/min`;
+            `人口 ${DataMgr.myData.population}/${DataMgr.populationLimit} (闲置 ${DataMgr.idleWorkers}) 增长${DataMgr.populationGrowPerMin.toFixed(0)}/min`;
         for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
             const cargoInfo = DataMgr.CargoConfig[i];
             let data = DataMgr.myCargoData.find((value, index, arr) => {
                 return value.id == cargoInfo.id;
-            }
-            );
+            });
             this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + data.amount.toFixed();
         }
 
@@ -140,34 +147,43 @@ export default class ArkUI extends BaseUI {
             this.blueprint.active = true;
             this.blueprint.position = new cc.Vec2(this.currentBlueprintIJ.i * 100 - 50, this.currentBlueprintIJ.j * 100 - 50);
             this.blueprint.setContentSize(this.currentHoldingBlueprint.length * 100, this.currentHoldingBlueprint.width * 100);
-            let overlap = false;
+            let ableToBuild = true;
             this.blueprintIndicator.clear();
             for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
                 for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
                     let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
                     this.blueprintIndicator.fillColor = cell.building ? cc.Color.RED : cc.Color.GREEN;
-                    if (cell.building) overlap = true;
+                    if (cell.building) ableToBuild = false;
+                    if (!cell.isLand) ableToBuild = false;
                     this.blueprintIndicator.fillRect(i * 100, j * 100, 100, 100);
                 }
             }
             this.grpBuild.active = true;
-            this.btnConfirmBuild.interactable = !overlap;
+            this.btnConfirmBuild.interactable = ableToBuild;
         } else {
             this.blueprint.active = false;
             this.grpBuild.active = false;
+        }
+        if (this.selectedBuilding) {
+            this.grpBuildingInfo.active = true;
+        } else {
+            this.grpBuildingInfo.active = false;
         }
     }
 
     refreshData() { }
 
     onGotoWorldClick() {
+        this.deselectBuilding();
         CsvMain.EnterUI(WorldUI);
     }
-    onBuildingClick() {
+    onBuildBtnClick() {
+        this.deselectBuilding();
         BuildPanel.Show();
     }
     onTechClick() {
-
+        this.deselectBuilding();
+        TechPanel.Show();
     }
 
     onCenterBtnClick() {
@@ -204,7 +220,11 @@ export default class ArkUI extends BaseUI {
 
     //Build
     @property(cc.Node)
-    buildingTemplate: cc.Node = null;
+    workshopTemplate: cc.Node = null;
+    @property(cc.Node)
+    houseTemplate: cc.Node = null;
+    @property(cc.Node)
+    roadTemplate: cc.Node = null;
     @property(cc.Node)
     buildingContainer: cc.Node = null;
     @property(cc.Node)
@@ -230,14 +250,15 @@ export default class ArkUI extends BaseUI {
     btnConfirmBuild: cc.Button = null;
     onBtnConfirmBuildClick() {
         //检查重叠
-        let overlap = false;
+        let ableToBuild = true;
         for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
             for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
                 let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
-                if (cell.building) overlap = true;
+                if (cell.building) ableToBuild = false;
+                if (!cell.isLand) ableToBuild = false;
             }
         }
-        if (overlap) return;
+        if (!ableToBuild) return;
         //确定建造
         //检查建筑材料
         let buildMats = [];
@@ -272,7 +293,8 @@ export default class ArkUI extends BaseUI {
         this.currentHoldingBlueprint = null;
     }
     createBuilding(blueprint: BuildingInfo, ij: IJ) {
-        let buildingNode = cc.instantiate(this.buildingTemplate);
+        let prefabName = blueprint['prefab'];
+        let buildingNode = cc.instantiate(this[prefabName + 'Template']);
         buildingNode.parent = this.buildingContainer;
         let building = buildingNode.getComponent(Building);
         let data = new BuildingData();
@@ -288,6 +310,44 @@ export default class ArkUI extends BaseUI {
                 let cell = this.cells[ij.i + i][ij.j + j];
                 cell.building = building;
             }
+        }
+    }
+
+    //建筑信息
+    selectedBuilding: Building = null;
+    @property(cc.Node)
+    grpBuildingInfo: cc.Node = null;
+    selectBuilding(building: Building) {
+        console.log('选中建筑')
+        this.selectedBuilding = building;
+    }
+    deselectBuilding() {
+        this.selectedBuilding = null;
+    }
+    onDemolishBtnClick() {
+        let self = ArkUI.Instance;
+        if (this.selectedBuilding) {
+            DialogPanel.PopupWith2Buttons('确定拆除建筑吗',
+                self.selectedBuilding.info.Name
+                + '\n建筑材料不予返还',
+                '拆除', () => {
+                    self.demolishBuilding(self.selectedBuilding);
+                    self.deselectBuilding();
+                },
+                '取消', null);
+        }
+    }
+    demolishBuilding(building: Building) {
+        if (!building) return;
+        //拆除建筑
+        console.log('拆除建筑');
+        let index = DataMgr.myBuildingData.findIndex(data => data == building.data);
+        if (index >= 0) {
+            //施放工人
+            let workers = building.data.workers;
+            DataMgr.myBuildingData.splice(index, 1);
+            building.node.destroy();
+            DataMgr.idleWorkers += workers;
         }
     }
 }
