@@ -1,6 +1,7 @@
-import CsvMain from "./CvsMain";
+import CvsMain from "./CvsMain";
 import HomeUI from "./HomeUI";
 import { DataMgr, UserData, CargoData } from "./DataMgr";
+import WorldUI from "./WorldUI";
 
 const { ccclass, property } = cc._decorator;
 
@@ -13,11 +14,8 @@ export default class MainCtrl extends cc.Component {
         this.fetchRemoteData();
     }
 
-
-
-
     start() {
-        CsvMain.EnterUI(HomeUI);
+        CvsMain.EnterUI(HomeUI);
         console.log('goto home')
 
         //加载数据
@@ -37,18 +35,19 @@ export default class MainCtrl extends cc.Component {
 
 
     gotoHome() {
-        CsvMain.EnterUI(HomeUI);
+        CvsMain.EnterUI(HomeUI);
     }
 
     generateNewArk(size: number) {
         let user = new UserData();
         user.arkSize = size;
         let rad = Math.random() * Math.PI;
-        user.arkLocationX = Math.cos(rad) * 4000;
-        user.arkLocationY = Math.sin(rad) * 4000;
+        user.lastLocationX = Math.cos(rad) * 4000;
+        user.lastLocationY = Math.sin(rad) * 4000;
         user.speed = 0;
         user.population = 5;
         user.nickname = "新玩家";
+        this.calcSail(user);
         return user;
     }
 
@@ -57,8 +56,9 @@ export default class MainCtrl extends cc.Component {
 
         let user = new UserData();
         user.arkSize = 41;
-        user.arkLocationX = 0;
-        user.arkLocationY = 0;
+        user.arkLocation = cc.Vec2.ZERO;
+        user.lastLocationX = 0;
+        user.lastLocationY = 0;
         user.speed = 0;
         user.population = 2251;
         user.nickname = "星云号交易所方舟";
@@ -184,7 +184,34 @@ export default class MainCtrl extends cc.Component {
                     DataMgr.populationGrowPerMin = 0;
                 }
             }
+            //航行
+            this.calcSail(DataMgr.myData);
+            DataMgr.othersData.forEach(data => this.calcSail(data));
         }
+    }
+    calcSail(data: UserData) {
+        if (data.speed && data.speed > 0 && data.destinationX && data.destinationY) {
+            let lastTimestamp = data.lastLocationTime;
+            let nowTimestamp = Number(new Date());
+            let lastLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
+            let destination = new cc.Vec2(data.destinationX, data.destinationY);
+            let needTime = destination.sub(lastLocation).mag() / (data.speed / 60) * 1000;
+            let curLocation = MainCtrl.lerpVec2(lastLocation, destination,
+                (nowTimestamp - lastTimestamp) / needTime, true);
+            data.arkLocation = curLocation;
+        } else {
+            data.arkLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
+        }
+    }
+
+
+    static lerp(a: number, b: number, t: number, clamp?: boolean): number {
+        if (clamp) t = Math.max(0, Math.min(1, t));
+        return a * (1 - t) + b * t;
+    }
+    static lerpVec2(a: cc.Vec2, b: cc.Vec2, t: number, clamp?: boolean): cc.Vec2 {
+        if (clamp) t = Math.max(0, Math.min(1, t));
+        return a.mul(1 - t).add(b.mul(t));
     }
 
     isHouse(id: string) {

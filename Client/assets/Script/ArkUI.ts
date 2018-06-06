@@ -1,4 +1,4 @@
-import CsvMain from "./CvsMain";
+import CvsMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import WorldUI from "./WorldUI";
 import { DataMgr, BuildingInfo, IJ, BuildingData } from "./DataMgr";
@@ -175,7 +175,7 @@ export default class ArkUI extends BaseUI {
 
     onGotoWorldClick() {
         this.deselectBuilding();
-        CsvMain.EnterUI(WorldUI);
+        CvsMain.EnterUI(WorldUI);
     }
     onBuildBtnClick() {
         this.deselectBuilding();

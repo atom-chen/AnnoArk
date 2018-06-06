@@ -1,4 +1,4 @@
-import CsvMain from "./CvsMain";
+import CvsMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
 import { DataMgr, UserData, CargoData, TechData } from "./DataMgr";
@@ -27,7 +27,7 @@ export default class HomeUI extends BaseUI {
             }
         }
         if (DataMgr.myData) {
-            CsvMain.EnterUI(WorldUI);
+            CvsMain.EnterUI(WorldUI);
         }
     }
 
@@ -66,7 +66,7 @@ export default class HomeUI extends BaseUI {
             data.finished = false;
             DataMgr.myTechData.push(data);
         })
-        CsvMain.EnterUI(WorldUI);
+        CvsMain.EnterUI(WorldUI);
         console.log('pop', DataMgr.myData.population)
     }
 

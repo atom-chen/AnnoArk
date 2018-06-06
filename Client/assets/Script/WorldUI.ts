@@ -1,4 +1,4 @@
-import CsvMain from "./CvsMain";
+import CvsMain from "./CvsMain";
 import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
 import ArkUI from "./ArkUI";
@@ -24,6 +24,7 @@ export default class WorldUI extends BaseUI {
         });
         this.panPad.on(cc.Node.EventType.TOUCH_MOVE, this.onPanPadTouchMove, this);
         this.panPad.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
+        this.panPad.on(cc.Node.EventType.TOUCH_END, this.onPanPadTouchEnd, this);
 
         // cc.systemEvent.on(cc.SystemEvent.EventType.)
     }
@@ -85,12 +86,20 @@ export default class WorldUI extends BaseUI {
         }
     }
 
+    refreshMyArk() {
+        let arkIW = this.arkContainer.children[0].getComponent(ArkInWorld);
+        arkIW.setAndRefresh(DataMgr.myData, this.zoomScale);
+    }
+
     refreshZoom() {
-        let size = 12000 * this.zoomScale;
-        this.earth.setContentSize(size, size);
-        this.arkContainer.children.forEach(c => {
-            c.getComponent(ArkInWorld).refreshZoom(this.zoomScale);
-        })
+        // let size = 12000 * this.zoomScale;
+        this.earth.scale = this.zoomScale;
+        // this.arkContainer.children.forEach(c => {
+        //     c.getComponent(ArkInWorld).refreshZoom(this.zoomScale);
+        // })
+        if (this.editSailDestinationMode && this.newDestination) {
+            this.sailDestinationIndicator.position = this.newDestination.mul(this.zoomScale);
+        }
     }
 
     update(dt: number) {
@@ -114,19 +123,27 @@ export default class WorldUI extends BaseUI {
             let oldZoomScale = this.zoomScale;
             this.zoomScale *= Math.pow(1.5, (prog - 0.5) * 2 * 5 * dt);
             this.clampZoom();
-            let deltaZoom = this.zoomScale/ oldZoomScale;
+            let deltaZoom = this.zoomScale / oldZoomScale;
             this.worldMap.position = this.worldMap.position.mul(deltaZoom);
             this.refreshZoom();
+        }
+
+        if (this.editSailDestinationMode) {
+            this.grpSail.active = true;
+            this.sailDestinationIndicator.active = this.newDestination != null;
+        } else {
+            this.grpSail.active = false;
+            this.sailDestinationIndicator.active = false;
         }
     }
 
     onGotoArkClick() {
-        CsvMain.EnterUI(ArkUI);
+        CvsMain.EnterUI(ArkUI);
     }
 
     onCenterBtnClick() {
         let data = DataMgr.myData;
-        let rawPos = new cc.Vec2(data.arkLocationX, data.arkLocationY);
+        let rawPos = data.arkLocation;
         rawPos.mulSelf(this.zoomScale);
         this.worldMap.position = rawPos.neg();
     }
@@ -136,12 +153,25 @@ export default class WorldUI extends BaseUI {
         let delta = event.getDelta();
         this.worldMap.position = this.worldMap.position.add(new cc.Vec2(delta.x, delta.y));
     }
+    onPanPadTouchEnd(event: cc.Event.EventTouch) {
+        if (this.editSailDestinationMode) {
+            let curLoc = event.getLocation();
+            console.log('curLoc', curLoc)
+            let displacement = new cc.Vec2(curLoc.x, curLoc.y).sub(event.getStartLocation());
+            if (displacement.mag() < 20) {
+                let touchPos = this.worldMap.convertTouchToNodeSpaceAR(event.touch);
+                console.log('toupos', touchPos)
+                this.newDestination = touchPos.mul(1 / this.zoomScale);
+                this.sailDestinationIndicator.position = this.newDestination.mul(this.zoomScale);
+            }
+        }
+    }
     onMouseWheel(event: cc.Event.EventMouse) {
         let delta = event.getScrollY();
         let oldZoomScale = this.zoomScale;
         this.zoomScale *= Math.pow(1.5, (delta / 120)); //delta每次±120
         this.clampZoom();
-        let deltaZoom = this.zoomScale/ oldZoomScale;
+        let deltaZoom = this.zoomScale / oldZoomScale;
         this.worldMap.position = this.worldMap.position.mul(deltaZoom);
         this.refreshZoom();
     }
@@ -151,5 +181,35 @@ export default class WorldUI extends BaseUI {
     clampZoom() {
         if (this.zoomScale > 10) this.zoomScale = 10;
         if (this.zoomScale < 0.01) this.zoomScale = 0.01;
+    }
+
+    //航行
+    editSailDestinationMode = false;
+    newDestination: cc.Vec2;
+    @property(cc.Node)
+    grpSail: cc.Node = null;
+    @property(cc.Node)
+    sailDestinationIndicator: cc.Node = null;
+    @property(cc.Node)
+    btnCancelSail: cc.Node = null;
+    @property(cc.Node)
+    btnConfirmSail: cc.Node = null;
+    onBtnSailClick() {
+        this.editSailDestinationMode = true;
+        this.newDestination = null;
+    }
+    onCancelSailClick() {
+        this.editSailDestinationMode = false;
+        this.newDestination = null;
+    }
+    onConfirmSailClick() {
+        console.log('调用合约咯');
+        DataMgr.myData.speed = 10000;// 100 km/min
+        DataMgr.myData.lastLocationX = DataMgr.myData.arkLocation.x;
+        DataMgr.myData.lastLocationY = DataMgr.myData.arkLocation.y;
+        DataMgr.myData.lastLocationTime = Number(new Date());
+        DataMgr.myData.destinationX = this.newDestination.x;
+        DataMgr.myData.destinationY = this.newDestination.y;
+        setTimeout(() => { this.editSailDestinationMode = false; }, 1000);
     }
 }

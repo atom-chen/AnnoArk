@@ -1,4 +1,6 @@
 import { DataMgr, UserData } from "./DataMgr";
+import MainCtrl from "./MainCtrl";
+import WorldUI from "./WorldUI";
 
 const { ccclass, property } = cc._decorator;
 
@@ -13,7 +15,6 @@ export default class ArkInWorld extends cc.Component {
     data: UserData;
 
     setAndRefresh(data: UserData, zoomScale: number) {
-        console.log('sar', data);
         this.data = data;
         this.sprArk.node.setContentSize(data.arkSize, data.arkSize);
         this.lblName.string = data.nickname;
@@ -21,10 +22,10 @@ export default class ArkInWorld extends cc.Component {
     }
 
     refreshZoom(zoomScale: number) {
-        let rawPos = new cc.Vec2(this.data.arkLocationX, this.data.arkLocationY);
-        rawPos.mulSelf(zoomScale);
-        this.node.position = rawPos;
+        this.node.position = this.data.arkLocation.mul(zoomScale);
     }
 
-    // update (dt) {}
+    update(dt: number) {
+        this.refreshZoom(WorldUI.Instance.zoomScale);
+    }
 }

@@ -1,4 +1,4 @@
-import CsvMain from "./CvsMain";
+import CvsMain from "./CvsMain";
 
 const {ccclass, property} = cc._decorator;
 

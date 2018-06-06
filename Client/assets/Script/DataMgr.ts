@@ -57,10 +57,11 @@ export class DataMgr {
 export class UserData {
     nickname: string;
     arkSize: number; //0: 简陋方舟, 1, 2
-    arkLocationX: number;
-    arkLocationY: number;
+    arkLocation: cc.Vec2;
     population: number = 0;
     speed: number;
+    lastLocationX: number;
+    lastLocationY: number;
     lastLocationTime: number;
     destinationX: number;
     destinationY: number;

@@ -3,12 +3,12 @@ import BaseUI from "./BaseUI";
 const { ccclass, property } = cc._decorator;
 
 @ccclass
-export default class CsvMain extends cc.Component {
+export default class CvsMain extends cc.Component {
 
-    static Instance: CsvMain;
+    static Instance: CvsMain;
 
     onLoad() {
-        CsvMain.Instance = this;
+        CvsMain.Instance = this;
         this.uiContainer.children.forEach(c => c.active = false);
     }
 
