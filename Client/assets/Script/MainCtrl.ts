@@ -141,7 +141,7 @@ export default class MainCtrl extends cc.Component {
             DataMgr.idleWorkers = DataMgr.myData.population - totalWorkers;
             if (DataMgr.myData && DataMgr.myCargoData) {
                 //检查食物
-                let needToConsumeFood = DataMgr.myData.population * 2 / 60 * dt;
+                let needToConsumeFood = DataMgr.myData.population * 1 / 60 * dt;
                 let oriNeedToConsumeFood = needToConsumeFood;
                 DataMgr.CargoConfig.forEach(info => {
                     if (info['IsFood'] != 'TRUE') return;
