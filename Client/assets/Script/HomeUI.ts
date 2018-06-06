@@ -67,6 +67,7 @@ export default class HomeUI extends BaseUI {
             DataMgr.myTechData.push(data);
         })
         CsvMain.EnterUI(WorldUI);
+        console.log('pop', DataMgr.myData.population)
     }
 
     onBookClick() {

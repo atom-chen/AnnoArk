@@ -119,7 +119,7 @@ export default class ArkUI extends BaseUI {
             let data = DataMgr.myCargoData.find((value, index, arr) => {
                 return value.id == cargoInfo.id;
             });
-            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + data.amount.toFixed();
+            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + Math.floor(data.amount).toFixed();
         }
 
         let prog = this.sldZoom.progress;

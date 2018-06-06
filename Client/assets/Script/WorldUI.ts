@@ -76,7 +76,6 @@ export default class WorldUI extends BaseUI {
         }
         needToDestroys.forEach(c => c.destroy());
 
-
         let arkIW = this.arkContainer.children[0].getComponent(ArkInWorld);
         arkIW.setAndRefresh(DataMgr.myData, this.zoomScale);
         for (let i = 0; i < DataMgr.othersData.length; i++) {
