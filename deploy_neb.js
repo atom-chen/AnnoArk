@@ -25,14 +25,22 @@ if(!fs.existsSync(dist)){
 	fs.mkdirSync(dist);
 }
 
-var downloadNotExist = function(url,path){
-	if(!fs.existsSync(path)){
-		console.log('download ',url);
+var downloadNotExist = function (url, p) {
+	if (!fs.existsSync(p)) {
+		console.log('download ', url);
+		console.log('path ', p);
+		var writer = fs.createWriteStream(p);
 		https.get(url, (res) => {
-			res.on('data', (d) => { fs.writeFileSync(path,d); });
+			res.on('data', (d) => {
+				// console.log(p, d);
+				writer.write(d, 'utf-8');
+			}).on('end',(e)=>{
+				// console.log('end',p);
+				writer.close();
+			})
 		}).on('error', (e) => {
-			console.error(e);
-		});
+			console.error('error:',e);
+		})
 	}
 }
 var nebulas = path.join(dist,'nebulas.min.js');
