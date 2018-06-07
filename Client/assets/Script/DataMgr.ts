@@ -11,7 +11,8 @@ export class DataMgr {
     static populationLimit: number = 0;
     static aboveIronMine = false;
 
-    static othersData: UserData[] = [];
+    static othersData = {};
+    static allIslandData = {};
 
     static BuildingConfig: BuildingInfo[];
     static CargoConfig: CargoInfo[];
@@ -53,15 +54,15 @@ export class DataMgr {
         cc.sys.localStorage.removeItem('user0Building');
     }
 
-    static HumanConfig = {
-
-    }
+    
 }
 
 export class UserData {
     nickname: string;
+    address: string; //区块链地址
+    country: string;
     arkSize: number; //0: 简陋方舟, 1, 2
-    arkLocation: cc.Vec2;
+    currentLocation: cc.Vec2;
     population: number = 0;
     speed: number;
     lastLocationX: number;
@@ -104,6 +105,22 @@ export class TechData {
 export class MineInfo {
     polygonCollider: cc.PolygonCollider;
     points: cc.Vec2[];
+}
+export class IslandData {
+    location: cc.Vec2;
+    id: number;
+    occupant: string; //当前占领者addr
+    marinePower: number = 0;
+    tankPower: number = 0;
+    shipPower: number = 0;
+    money: number = 0; 里面还有多少nas
+    sponsorAddress: string;//赞助商账号
+    sponsorName: string = '';//赞助商名称
+    sponsorLink: string;//赞助商链接
+    minMiningSpeed: number = 0.04167; //NAS/h 挖矿速度
+    miningRate: number = 0.02;///h 挖矿百分比速度，实际挖矿速度=max(minMiningSpeed, money*miningRate）
+    occupantBalance: number = 0; //当前占领者可收获的NAS
+    dataTimestamp: number; //当前数据的时间戳
 }
 export class IJ {
     i: number = 0;

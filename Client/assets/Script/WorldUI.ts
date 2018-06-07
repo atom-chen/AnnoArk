@@ -4,6 +4,7 @@ import MainCtrl from "./MainCtrl";
 import ArkUI from "./ArkUI";
 import ArkInWorld from "./ArkInWorld";
 import { DataMgr } from "./DataMgr";
+import BlockchainMgr from "./BlockchainMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -31,6 +32,8 @@ export default class WorldUI extends BaseUI {
 
     @property(cc.Node)
     mineContainer: cc.Node = null;
+    @property(cc.Node)
+    islandContainer: cc.Node = null;
 
     @property(cc.Node)
     arkContainer: cc.Node = null;
@@ -49,12 +52,9 @@ export default class WorldUI extends BaseUI {
     pressingZoomSlider = false;
     zoomScale: number = 0.1;
 
-    start() {
-    }
-
     onEnable() {
         if (!DataMgr.myData) return;
-        
+
         this.refreshData();
         this.refreshZoom();
     }
@@ -62,7 +62,7 @@ export default class WorldUI extends BaseUI {
     refreshData() {
 
         //myData
-        let neededCount = DataMgr.othersData.length + 1;
+        let neededCount = Object.keys(DataMgr.othersData).length + 1;
         for (let i = this.arkContainer.childrenCount; i < neededCount; i++) {
             let arkNode = cc.instantiate(this.arkTemplate);
             arkNode.parent = this.arkContainer;
@@ -75,10 +75,12 @@ export default class WorldUI extends BaseUI {
 
         let arkIW = this.arkContainer.children[0].getComponent(ArkInWorld);
         arkIW.setAndRefresh(DataMgr.myData, this.zoomScale);
-        for (let i = 0; i < DataMgr.othersData.length; i++) {
-            const data = DataMgr.othersData[i];
+        let i = 0;
+        for (let address in DataMgr.othersData) {
+            const data = DataMgr.othersData[address];
             this.arkContainer.children[i + 1].getComponent(ArkInWorld).
-                setAndRefresh(DataMgr.othersData[i], this.zoomScale);
+                setAndRefresh(data, this.zoomScale);
+            i++;
         }
     }
 
@@ -139,7 +141,7 @@ export default class WorldUI extends BaseUI {
 
     onCenterBtnClick() {
         let data = DataMgr.myData;
-        let rawPos = data.arkLocation;
+        let rawPos = data.currentLocation;
         rawPos.mulSelf(this.zoomScale);
         this.worldMap.position = rawPos.neg();
     }
@@ -200,12 +202,20 @@ export default class WorldUI extends BaseUI {
     }
     onConfirmSailClick() {
         console.log('调用合约咯');
-        DataMgr.myData.speed = 10000;// 100 km/min
-        DataMgr.myData.lastLocationX = DataMgr.myData.arkLocation.x;
-        DataMgr.myData.lastLocationY = DataMgr.myData.arkLocation.y;
-        DataMgr.myData.lastLocationTime = Number(new Date());
-        DataMgr.myData.destinationX = this.newDestination.x;
-        DataMgr.myData.destinationY = this.newDestination.y;
-        setTimeout(() => { this.editSailDestinationMode = false; }, 1000);
+        const myData = DataMgr.myData;
+        let deltaData = {};
+        deltaData['speed'] = 1000;
+        deltaData['lastLocationX'] = myData.lastLocationX;
+        deltaData['lastLocationX'] = myData.lastLocationX;
+        deltaData['destinationX'] = this.newDestination.x;
+        deltaData['destinationY'] = this.newDestination.y;
+        BlockchainMgr.Instance.setSail(deltaData);
+        // DataMgr.myData.speed = 10000;// 100 km/min
+        // DataMgr.myData.lastLocationX = DataMgr.myData.currentLocation.x;
+        // DataMgr.myData.lastLocationY = DataMgr.myData.currentLocation.y;
+        // DataMgr.myData.lastLocationTime = Number(new Date());
+        // DataMgr.myData.destinationX = this.newDestination.x;
+        // DataMgr.myData.destinationY = this.newDestination.y;
+        // setTimeout(() => { this.editSailDestinationMode = false; }, 1000);
     }
 }

@@ -6,6 +6,7 @@ import BuildPanel from "./BuildPanel";
 import Building from "./Building";
 import TechPanel from "./TechPanel";
 import DialogPanel from "./DialogPanel";
+import BuildingInfoPanel from "./UI/BuildingInfoPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -348,6 +349,11 @@ export default class ArkUI extends BaseUI {
             DataMgr.myBuildingData.splice(index, 1);
             building.node.destroy();
             DataMgr.idleWorkers += workers;
+        }
+    }
+    onBuildingInfoBtnClick() {
+        if (this.selectedBuilding) {
+            BuildingInfoPanel.Show(this.selectedBuilding.info);
         }
     }
 }

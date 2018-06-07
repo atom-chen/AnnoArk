@@ -41,7 +41,6 @@ export default class CvsMain extends cc.Component {
                 this.fitter.scale = visibleSize.width / 1080;
             }
             this.lastVisibleSize = visibleSize;
-            console.log('fit')
         }
     }
 }

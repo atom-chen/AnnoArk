@@ -3,6 +3,8 @@ import BaseUI from "./BaseUI";
 import MainCtrl from "./MainCtrl";
 import { DataMgr, UserData, CargoData, TechData } from "./DataMgr";
 import WorldUI from "./WorldUI";
+import ToastPanel from "./UI/ToastPanel";
+import BlockchainMgr from "./BlockchainMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -19,6 +21,9 @@ export default class HomeUI extends BaseUI {
     btnClaim1: cc.Button = null;
     @property(cc.Button)
     btnClaim2: cc.Button = null;
+    
+    @property(cc.Label)
+    lblBlockchainAddress: cc.Label = null;
 
     start() {
         if (DataMgr.myData) {
@@ -29,6 +34,12 @@ export default class HomeUI extends BaseUI {
         if (DataMgr.myData) {
             CvsMain.EnterUI(WorldUI);
         }
+
+        ToastPanel.Toast('正在读取您的钱包信息，如果您在用钱包玩游戏，请稍候');
+    }
+
+    update() {
+        this.lblBlockchainAddress.string = BlockchainMgr.WalletAddress;
     }
 
     onClaim(event, index: string) {

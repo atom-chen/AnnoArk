@@ -1,7 +1,9 @@
 import CvsMain from "./CvsMain";
 import HomeUI from "./HomeUI";
-import { DataMgr, UserData, CargoData, MineInfo } from "./DataMgr";
+import { DataMgr, UserData, CargoData, MineInfo, IslandData } from "./DataMgr";
 import WorldUI from "./WorldUI";
+import IntroUI from "./UI/IntroUI";
+import Island from "./World/Island";
 
 const { ccclass, property } = cc._decorator;
 
@@ -15,9 +17,10 @@ export default class MainCtrl extends cc.Component {
         CvsMain.Instance.uiContainer.getChildByName('WorldUI').active = true;
     }
 
+    static Ticks = 0;
+
     start() {
-        CvsMain.EnterUI(HomeUI);
-        console.log('goto home')
+        CvsMain.EnterUI(IntroUI);
 
         //加载数据
         cc.loader.loadRes('Building', function (err, txt) {
@@ -46,6 +49,14 @@ export default class MainCtrl extends cc.Component {
                 DataMgr.IronMineConfig.push(info);
             }
         });
+        WorldUI.Instance.islandContainer.children.forEach(c => {
+            const island = c.getComponent(Island);
+            const islandData = new IslandData();
+            islandData.id = parseInt(island.name);
+            islandData.location = island.node.position;
+            DataMgr.allIslandData[islandData.id] = islandData;
+            island.setData(islandData);
+        });
     }
 
 
@@ -71,7 +82,7 @@ export default class MainCtrl extends cc.Component {
 
         let user = new UserData();
         user.arkSize = 41;
-        user.arkLocation = cc.Vec2.ZERO;
+        user.currentLocation = cc.Vec2.ZERO;
         user.lastLocationX = 0;
         user.lastLocationY = 0;
         user.speed = 0;
@@ -93,7 +104,7 @@ export default class MainCtrl extends cc.Component {
 
             //检测所属矿区
             DataMgr.IronMineConfig.forEach(m => {
-                if (cc.Intersection.pointInPolygon(DataMgr.myData.arkLocation, m.points)) {
+                if (cc.Intersection.pointInPolygon(DataMgr.myData.currentLocation, m.points)) {
                     DataMgr.aboveIronMine = true;
                 }
             });
@@ -212,8 +223,12 @@ export default class MainCtrl extends cc.Component {
             }
             //航行
             this.calcSail(DataMgr.myData);
-            DataMgr.othersData.forEach(data => this.calcSail(data));
+            for (let address in DataMgr.othersData){
+                this.calcSail(DataMgr.othersData[address]);
+            }
         }
+
+        MainCtrl.Ticks ++;
     }
     calcSail(data: UserData) {
         if (data.speed && data.speed > 0 && data.destinationX && data.destinationY) {
@@ -224,9 +239,9 @@ export default class MainCtrl extends cc.Component {
             let needTime = destination.sub(lastLocation).mag() / (data.speed / 60) * 1000;
             let curLocation = MainCtrl.lerpVec2(lastLocation, destination,
                 (nowTimestamp - lastTimestamp) / needTime, true);
-            data.arkLocation = curLocation;
+            data.currentLocation = curLocation;
         } else {
-            data.arkLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
+            data.currentLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
         }
     }
 

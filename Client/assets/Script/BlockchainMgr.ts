@@ -1,3 +1,7 @@
+import { DataMgr, UserData, IslandData } from "./DataMgr";
+import DialogPanel from "./DialogPanel";
+import WorldUI from "./WorldUI";
+import ToastPanel from "./UI/ToastPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -5,7 +9,7 @@ declare var Neb: any;
 declare var NebPay: any;
 declare var Account: any;
 declare var HttpRequest: any;
-export const ContractAddress = 'n132idsojgs';
+export const ContractAddress = 'n1rt9xtdXpfm6MNTmUhd6LaaY2w3tr7DxFd';
 export const EncKey = 37234;
 
 @ccclass
@@ -19,19 +23,25 @@ export default class BlockchainMgr extends cc.Component {
     static BlockchainUrl: string = 'https://testnet.nebulas.io';
     static WalletAddress: string;
 
-    static CheckWalletInterval = 3;
+    static CheckWalletInterval = 10;
     static FetchAllDataInterval = 10;
 
     checkWalletCountdown = 1e9;
     fetchAllDataCountdown = 1e9;
 
     start() {
-        this.checkWalletCountdown = BlockchainMgr.CheckWalletInterval;
-        this.fetchAllDataCountdown = BlockchainMgr.FetchAllDataInterval;
+        this.checkWalletCountdown = 1;
+        this.fetchAllDataCountdown = 1;
     }
 
     //不断刷新当前钱包地址
     update(dt: number) {
+        try {
+            Neb; NebPay;
+        } catch (error) {
+            return;
+        }
+
         this.checkWalletCountdown -= dt;
         this.fetchAllDataCountdown -= dt;
 
@@ -55,46 +65,87 @@ export default class BlockchainMgr extends cc.Component {
             this.checkWalletCountdown = BlockchainMgr.CheckWalletInterval;
         }
         if (this.fetchAllDataCountdown <= 0) {
+            // const func = 'get_map_info';
 
+            let neb = new Neb();
+            neb.setRequest(new HttpRequest(BlockchainMgr.BlockchainUrl));
+
+            var from = BlockchainMgr.WalletAddress ? BlockchainMgr.WalletAddress : Account.NewAccount().getAddressString();
+            var value = "0";
+            var nonce = "0"
+            var gas_price = "1000000"
+            var gas_limit = "2000000"
+            var callFunction = "get_map_info";
+            var contract = {
+                "function": callFunction,
+                "args": "[]"
+            }
+            let self = this;
+            neb.api.call(from, ContractAddress, value, nonce, gas_price, gas_limit, contract).then(
+                self.onGetAllMapData
+            ).catch(function (err) {
+                console.log("call get_map_info error:" + err.message)
+            })
 
             this.fetchAllDataCountdown = BlockchainMgr.FetchAllDataInterval;
         }
     }
 
     onGetWalletData(e) {
-        if (e.data && e.data.data) {
-            if (e.data.data.account) {
-                var address = e.data.data.account;
-                if (BlockchainMgr.WalletAddress != address) {
-                    console.log('Change wallet address:', address);
-                    BlockchainMgr.WalletAddress = address;
-                    this.fetchAllDataCountdown = 0;
-                }
+        if (e.data && e.data.data && e.data.data.account && e.data.data.account.length > 0) {
+            var address = e.data.data.account;
+            if (BlockchainMgr.WalletAddress != address) {
+                console.log('Change wallet address:', address);
+                BlockchainMgr.WalletAddress = address;
+                this.fetchAllDataCountdown = 0;
             }
         }
     }
 
-    onUploadBtnClick() {
-        if (window.webExtensionWallet) {
-            try {
-                let score = MainCtrl.Instance.lastScore;
-                let donateAmount = parseFloat(this.edtDonate.string);
-                let comment = this.edtComment.string;
-                let operation = [];
-                MainCtrl.Instance.lastTradeHistory.forEach(trade => {
-                    operation.push(trade[0] * 10 + trade[2]);
-                });
+    onGetAllMapData(resp) {
+        console.log('=====resp', resp);
+        let allData = JSON.parse(resp.result).result_data;
+        let allArkData = allData.ark_info;
+        let allIslandData = allData.island_info;
 
+        allArkData.forEach(arkJson => {
+            let localData = DataMgr.othersData[arkJson.address];
+            if (!localData) {
+                localData = new UserData();
+                localData.currentLocation = new cc.Vec2(arkJson.locationX, arkJson.locationY);
+                DataMgr.othersData[arkJson.address] = localData;
+            }
+            for (let key in arkJson) {
+                if (key == 'locationX') localData['lastLocationX'] = arkJson[key];
+                else if (key == 'locationY') localData['lastLocationY'] = arkJson[key];//TODO:更新完合约就不用这样了
+                else localData[key] = arkJson[key];
+            }
+        });
+        allIslandData.forEach(islandJson => {
+            let localData: IslandData = DataMgr.allIslandData[islandJson.id];
+            if (localData) {
+                for (let key in islandJson) {
+                    localData[key] = islandJson[key];
+                }
+            } else {
+                console.error('从区块链获取到未知id的island:', islandJson);
+            }
+        });
+    }
+
+    setSail(deltaData) {
+        if (window['webExtensionWallet']) {
+            try {
                 var nebPay = new NebPay();
                 var serialNumber;
-                var callbackUrl = MainCtrl.BlockchainUrl;
+                var callbackUrl = BlockchainMgr.BlockchainUrl;
 
                 var to = ContractAddress;
-                var value = donateAmount;
-                var callFunction = 'submit';
-                let encScore = UploadUI.encrypto(score.toString(), EncKey, 25);
-                console.log("调用钱包", score, donateAmount, comment, operation, encScore);
-                var callArgs = '["' + encScore + '","' + comment + '",[' + operation.toString() + ']]';
+                var value = 0;
+                var callFunction = 'udpate_ark';
+                // let enc = BlockchainMgr.encrypto(score.toString(), EncKey, 25);
+                console.log("调用钱包", deltaData);
+                var callArgs = '["' + JSON.stringify(deltaData)+'"]';
                 serialNumber = nebPay.call(to, value, callFunction, callArgs, {
                     qrcode: {
                         showQRCode: false
@@ -104,13 +155,48 @@ export default class BlockchainMgr extends cc.Component {
                         desc: "test goods"
                     },
                     callback: callbackUrl,
-                    listener: this.listener
+                    listener: this.setSailCallback
                 });
             } catch (error) {
                 console.error(error);
             }
         } else {
-            window.open("https://github.com/ChengOrangeJu/WebExtensionWallet");
+            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
+                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
+                '取消', null, '去安装',
+                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
         }
+    }
+    setSailCallback(resp: string) {
+        console.log("setSailCallback: ", resp);
+        if (resp.toString().substr(0, 5) != 'Error') {
+            ToastPanel.Toast('方舟引擎开始预热，预计1分钟内出发\n(交易发送成功，请等待区块链出块)');
+            WorldUI.Instance.editSailDestinationMode = false;
+        }else{
+            ToastPanel.Toast('交易失败:'+ resp);
+        }
+    }
+
+    static encrypto(str, xor, hex) {
+        if (typeof str !== 'string' || typeof xor !== 'number' || typeof hex !== 'number') {
+            return;
+        }
+
+        let resultList = [];
+        hex = hex <= 25 ? hex : hex % 25;
+
+        for (let i = 0; i < str.length; i++) {
+            // 提取字符串每个字符的ascll码
+            let charCode: any = str.charCodeAt(i);
+            // 进行异或加密
+            charCode = (charCode * 1) ^ xor;
+            // 异或加密后的字符转成 hex 位数的字符串
+            charCode = charCode.toString(hex);
+            resultList.push(charCode);
+        }
+
+        let splitStr = String.fromCharCode(hex + 97);
+        let resultStr = resultList.join(splitStr);
+        return resultStr;
     }
 }

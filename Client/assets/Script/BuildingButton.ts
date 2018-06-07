@@ -2,6 +2,7 @@ import BuildPanel from "./BuildPanel";
 import ArkUI from "./ArkUI";
 import { BuildingInfo, DataMgr, TechInfo } from "./DataMgr";
 import DialogPanel from "./DialogPanel";
+import BuildingInfoPanel from "./UI/BuildingInfoPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -49,7 +50,7 @@ export default class BuildingButton extends cc.Component {
     }
 
     onClick() {
-        console.log("TODO:打开详情面板")
+        BuildingInfoPanel.Show(this.info);
     }
 
     onBuildClick() {
