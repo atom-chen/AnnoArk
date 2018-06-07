@@ -5,6 +5,7 @@ import ArkUI from "./ArkUI";
 import ArkInWorld from "./ArkInWorld";
 import { DataMgr } from "./DataMgr";
 import BlockchainMgr from "./BlockchainMgr";
+import HomeUI from "./HomeUI";
 
 const { ccclass, property } = cc._decorator;
 
@@ -57,6 +58,9 @@ export default class WorldUI extends BaseUI {
 
         this.refreshData();
         this.refreshZoom();
+    }
+    onBtnBackClick(){
+        CvsMain.EnterUI(HomeUI);
     }
 
     refreshData() {

@@ -103,7 +103,7 @@ export default class BlockchainMgr extends cc.Component {
     }
 
     onGetAllMapData(resp) {
-        console.log('=====resp', resp);
+        console.log('onGetAllMapData', resp);
         let allData = JSON.parse(resp.result).result_data;
         let allArkData = allData.ark_info;
         let allIslandData = allData.island_info;
@@ -112,13 +112,11 @@ export default class BlockchainMgr extends cc.Component {
             let localData = DataMgr.othersData[arkJson.address];
             if (!localData) {
                 localData = new UserData();
-                localData.currentLocation = new cc.Vec2(arkJson.locationX, arkJson.locationY);
+                localData.currentLocation = new cc.Vec2(arkJson.lastLocationX, arkJson.lastLocationY);
                 DataMgr.othersData[arkJson.address] = localData;
             }
             for (let key in arkJson) {
-                if (key == 'locationX') localData['lastLocationX'] = arkJson[key];
-                else if (key == 'locationY') localData['lastLocationY'] = arkJson[key];//TODO:更新完合约就不用这样了
-                else localData[key] = arkJson[key];
+                localData[key] = arkJson[key];
             }
         });
         allIslandData.forEach(islandJson => {

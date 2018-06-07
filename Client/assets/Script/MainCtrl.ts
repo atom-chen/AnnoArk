@@ -190,7 +190,7 @@ export default class MainCtrl extends cc.Component {
                     }
                 });
                 if (needToConsumeFood <= 0 && DataMgr.myData.population < DataMgr.populationLimit) {
-                    let newPopulationPerMin = (10 + Math.sqrt(DataMgr.myData.population)) / 10 * 300;//TODO*3
+                    let newPopulationPerMin = (10 + Math.sqrt(DataMgr.myData.population)) / 10 * 30;//TODO*3
                     let perDt = newPopulationPerMin / 60 * dt;
                     if (Math.random() < perDt) {
                         //新人口
