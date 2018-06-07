@@ -22,7 +22,7 @@ export default class ArkInWorld extends cc.Component {
     }
 
     refreshZoom(zoomScale: number) {
-        this.node.position = this.data.currentLocation.mul(zoomScale);
+        this.node.position = new cc.Vec2(this.data.currentLocation.x, this.data.currentLocation.y).mul(zoomScale);
     }
 
     update(dt: number) {

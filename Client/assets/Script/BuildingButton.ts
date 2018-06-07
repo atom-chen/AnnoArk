@@ -24,8 +24,8 @@ export default class BuildingButton extends cc.Component {
     setAndRefresh(info: BuildingInfo) {
         this.info = info;
         this.lblName.string = info.Name;
-        this.lblSize.string = info.length + '*' + info.width;
-        this.sprSize.setContentSize(info.length * 12, info.width * 12);
+        this.lblSize.string = info.Length + '*' + info.Width;
+        this.sprSize.setContentSize(info.Length * 12, info.Width * 12);
 
         let strInfoLines = [];
         for (let i = 0; i < 4; i++) {

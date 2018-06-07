@@ -61,6 +61,8 @@ export default class ArkUI extends BaseUI {
 
     @property(cc.Node)
     arkMap: cc.Node = null;
+    @property(cc.Node)
+    ark: cc.Node = null;
 
     @property(cc.Node)
     cargoLabelContainer: cc.Node = null;
@@ -80,21 +82,21 @@ export default class ArkUI extends BaseUI {
     onEnable() {
         this.refreshZoom();
 
-        let myData = DataMgr.myData;
+        let myData = DataMgr.myData; console.log('size', myData.arkSize)
         for (let i = -Math.floor(myData.arkSize / 2); i < myData.arkSize / 2; i++) {
             for (let j = -Math.floor(myData.arkSize / 2); j < myData.arkSize / 2; j++) {
-                // let cell = new Cell();
-                // this.cells[i][j] = cell;
                 let cell = this.cells[i][j];
                 cell.isLand = true;
                 cell.building = null;
             }
         }
 
+        this.buildingContainer.destroyAllChildren();
         let workers = 0;
         DataMgr.myBuildingData.forEach(data => {
-            //b.id
-            //b.i,j
+            let info = DataMgr.BuildingConfig.find(i => i.id == data.id);
+            console.log('precreatebuilding', data);
+            this.createBuilding(info, data);
             workers += data.workers;
         });
 
@@ -117,10 +119,8 @@ export default class ArkUI extends BaseUI {
             `人口 ${DataMgr.myData.population}/${DataMgr.populationLimit} (闲置 ${DataMgr.idleWorkers}) 增长${DataMgr.populationGrowPerMin.toFixed(0)}/min`;
         for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
             const cargoInfo = DataMgr.CargoConfig[i];
-            let data = DataMgr.myCargoData.find((value, index, arr) => {
-                return value.id == cargoInfo.id;
-            });
-            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + Math.floor(data.amount).toFixed();
+            let data = DataMgr.myCargoData.find(d => d.id == cargoInfo.id);
+            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + Math.floor(data ? data.amount : 0).toFixed();
         }
 
         let prog = this.sldZoom.progress;
@@ -147,11 +147,11 @@ export default class ArkUI extends BaseUI {
         if (this.currentHoldingBlueprint) {
             this.blueprint.active = true;
             this.blueprint.position = new cc.Vec2(this.currentBlueprintIJ.i * 100 - 50, this.currentBlueprintIJ.j * 100 - 50);
-            this.blueprint.setContentSize(this.currentHoldingBlueprint.length * 100, this.currentHoldingBlueprint.width * 100);
+            this.blueprint.setContentSize(this.currentHoldingBlueprint.Length * 100, this.currentHoldingBlueprint.Width * 100);
             let ableToBuild = true;
             this.blueprintIndicator.clear();
-            for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
-                for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
+                    for (let i = 0; i < this.currentHoldingBlueprint.Length; i++) {
+                for (let j = 0; j < this.currentHoldingBlueprint.Width; j++) {
                     let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
                     this.blueprintIndicator.fillColor = cell.building ? cc.Color.RED : cc.Color.GREEN;
                     if (cell.building) ableToBuild = false;
@@ -170,6 +170,8 @@ export default class ArkUI extends BaseUI {
         } else {
             this.grpBuildingInfo.active = false;
         }
+
+        this.ark.setContentSize(DataMgr.myData.arkSize * 100, DataMgr.myData.arkSize * 100);
     }
 
     refreshData() { }
@@ -189,13 +191,12 @@ export default class ArkUI extends BaseUI {
 
     onCenterBtnClick() {
         let data = DataMgr.myData;
-        let rawPos = new cc.Vec2(data.arkLocationX, data.arkLocationY);
+        let rawPos = new cc.Vec2(data.currentLocation.x, data.currentLocation.y);
         rawPos.mulSelf(this.zoomScale);
         this.arkMap.position = rawPos.neg();
     }
 
     onPanPadTouchMove(event: cc.Event.EventTouch) {
-        console.log('drag map');
         let delta = event.getDelta();
         // if (this.currentHoldingBlueprint){
         //     this.dragBlueprint(event);
@@ -252,8 +253,8 @@ export default class ArkUI extends BaseUI {
     onBtnConfirmBuildClick() {
         //检查重叠
         let ableToBuild = true;
-        for (let i = 0; i < this.currentHoldingBlueprint.length; i++) {
-            for (let j = 0; j < this.currentHoldingBlueprint.width; j++) {
+        for (let i = 0; i < this.currentHoldingBlueprint.Length; i++) {
+            for (let j = 0; j < this.currentHoldingBlueprint.Width; j++) {
                 let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
                 if (cell.building) ableToBuild = false;
                 if (!cell.isLand) ableToBuild = false;
@@ -282,7 +283,14 @@ export default class ArkUI extends BaseUI {
                 let cargoData = DataMgr.myCargoData.find(data => data.id == mat[0]);
                 cargoData.amount -= mat[1];
             })
-            this.createBuilding(this.currentHoldingBlueprint, this.currentBlueprintIJ);
+
+            let data = new BuildingData();
+            data.id = this.currentHoldingBlueprint.id;
+            data.ij = this.currentBlueprintIJ.clone();
+            data.workers = 0;
+            DataMgr.myBuildingData.push(data);
+            this.createBuilding(this.currentHoldingBlueprint, data);
+
             if (this.currentHoldingBlueprint.id == 'road00001') {
                 this.currentBlueprintIJ.j += 1;
             } else {
@@ -293,22 +301,17 @@ export default class ArkUI extends BaseUI {
     onBtnCancelBuildClick() {
         this.currentHoldingBlueprint = null;
     }
-    createBuilding(blueprint: BuildingInfo, ij: IJ) {
+    createBuilding(blueprint: BuildingInfo, data: BuildingData) {
         let prefabName = blueprint['prefab'];
         let buildingNode = cc.instantiate(this[prefabName + 'Template']);
         buildingNode.parent = this.buildingContainer;
         let building = buildingNode.getComponent(Building);
-        let data = new BuildingData();
-        data.id = blueprint.id;
-        data.ij = ij.clone();
-        data.workers = 0;
-        DataMgr.myBuildingData.push(data);
         building.setInfo(blueprint, data);
-        buildingNode.position = new cc.Vec2(ij.i * 100 - 50, ij.j * 100 - 50);
+        buildingNode.position = new cc.Vec2(data.ij.i * 100 - 50, data.ij.j * 100 - 50);
         buildingNode.active = true;
-        for (let i = 0; i < blueprint.length; i++) {
-            for (let j = 0; j < blueprint.width; j++) {
-                let cell = this.cells[ij.i + i][ij.j + j];
+        for (let i = 0; i < blueprint.Length; i++) {
+            for (let j = 0; j < blueprint.Width; j++) {
+                let cell = this.cells[data.ij.i + i][data.ij.j + j];
                 cell.building = building;
             }
         }
@@ -347,8 +350,17 @@ export default class ArkUI extends BaseUI {
             //施放工人
             let workers = building.data.workers;
             DataMgr.myBuildingData.splice(index, 1);
-            building.node.destroy();
             DataMgr.idleWorkers += workers;
+            //施放土地
+            const info = DataMgr.BuildingConfig.find(i => i.id == building.data.id);
+            console.log('')
+            for (let i = 0; i < info.length; i++) {
+                for (let j = 0; j < info.width; i++) {
+                    console.log('cells', building.data.ij.i + i, building.data.ij.j + j, this.cells)
+                    this.cells[building.data.ij.i + i][building.data.ij.j + j].building = null;
+                }
+            }
+            building.node.destroy();
         }
     }
     onBuildingInfoBtnClick() {

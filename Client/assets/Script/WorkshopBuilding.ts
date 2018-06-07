@@ -20,7 +20,6 @@ export default class WorkshopBuilding extends Building {
     btnIncWork: cc.Button = null;
 
     setInfo(info: BuildingInfo, data: BuildingData) {
-        console.log('wb si')
         this.info = info;
         this.data = data;
         this.lblName.string = info.Name;
@@ -51,7 +50,7 @@ export default class WorkshopBuilding extends Building {
         } else {
             this.lblConsumption.string = '';
         }
-        this.node.setContentSize(info.length * 100, info.width * 100);
+        this.node.setContentSize(info.Length * 100, info.Width * 100);
     }
 
     changeWorkers(event, arg) {

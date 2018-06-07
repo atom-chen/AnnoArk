@@ -20,9 +20,9 @@ export default class ToastPanel extends cc.Component {
         let label = node.getComponent(cc.Label);
         label.string = text;
         node.active = true;
-        let seq = cc.sequence(cc.delayTime(2.5), cc.fadeOut(0.5));
+        let seq = cc.sequence(cc.delayTime(4.5), cc.fadeOut(0.5));
         node.runAction(seq);
-        setTimeout(() => { node.destroy(); }, 3000);
+        setTimeout(() => { node.destroy(); }, 5000);
     }
     static Toast(text: string) {
         ToastPanel.Instance.toast(text);

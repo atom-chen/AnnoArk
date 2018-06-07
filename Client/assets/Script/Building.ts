@@ -20,6 +20,6 @@ export default class Building extends cc.Component {
         this.info = info;
         this.data = data;
         if (this.lblName) this.lblName.string = info.Name;
-        this.node.setContentSize(info.length * 100, info.width * 100);
+        this.node.setContentSize(info.Length * 100, info.Width * 100);
     }
 }

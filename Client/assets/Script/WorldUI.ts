@@ -59,7 +59,7 @@ export default class WorldUI extends BaseUI {
         this.refreshData();
         this.refreshZoom();
     }
-    onBtnBackClick(){
+    onBtnBackClick() {
         CvsMain.EnterUI(HomeUI);
     }
 
@@ -84,6 +84,7 @@ export default class WorldUI extends BaseUI {
             const data = DataMgr.othersData[address];
             this.arkContainer.children[i + 1].getComponent(ArkInWorld).
                 setAndRefresh(data, this.zoomScale);
+                console.log('others ark', data);
             i++;
         }
     }
@@ -105,7 +106,7 @@ export default class WorldUI extends BaseUI {
     }
 
     update(dt: number) {
-        if (DataMgr.changed) {
+        if (DataMgr.changed || MainCtrl.Ticks % 100 == 0) {
             this.refreshData();
             DataMgr.changed = false;
         }
@@ -151,18 +152,15 @@ export default class WorldUI extends BaseUI {
     }
 
     onPanPadTouchMove(event: cc.Event.EventTouch) {
-        console.log('drag map');
         let delta = event.getDelta();
         this.worldMap.position = this.worldMap.position.add(new cc.Vec2(delta.x, delta.y));
     }
     onPanPadTouchEnd(event: cc.Event.EventTouch) {
         if (this.editSailDestinationMode) {
             let curLoc = event.getLocation();
-            console.log('curLoc', curLoc)
             let displacement = new cc.Vec2(curLoc.x, curLoc.y).sub(event.getStartLocation());
             if (displacement.mag() < 20) {
                 let touchPos = this.worldMap.convertTouchToNodeSpaceAR(event.touch);
-                console.log('toupos', touchPos)
                 this.newDestination = touchPos.mul(1 / this.zoomScale);
                 this.sailDestinationIndicator.position = this.newDestination.mul(this.zoomScale);
             }
@@ -209,14 +207,14 @@ export default class WorldUI extends BaseUI {
         const myData = DataMgr.myData;
         let deltaData = {};
         deltaData['speed'] = 1000;
-        deltaData['lastLocationX'] = myData.lastLocationX;
-        deltaData['lastLocationX'] = myData.lastLocationX;
+        deltaData['locationX'] = myData.locationX;
+        deltaData['locationY'] = myData.locationY;
         deltaData['destinationX'] = this.newDestination.x;
         deltaData['destinationY'] = this.newDestination.y;
         BlockchainMgr.Instance.setSail(deltaData);
         // DataMgr.myData.speed = 10000;// 100 km/min
-        // DataMgr.myData.lastLocationX = DataMgr.myData.currentLocation.x;
-        // DataMgr.myData.lastLocationY = DataMgr.myData.currentLocation.y;
+        // DataMgr.myData.locationX = DataMgr.myData.currentLocation.x;
+        // DataMgr.myData.locationY = DataMgr.myData.currentLocation.y;
         // DataMgr.myData.lastLocationTime = Number(new Date());
         // DataMgr.myData.destinationX = this.newDestination.x;
         // DataMgr.myData.destinationY = this.newDestination.y;

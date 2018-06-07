@@ -2,6 +2,10 @@ import { DataMgr, UserData, IslandData } from "./DataMgr";
 import DialogPanel from "./DialogPanel";
 import WorldUI from "./WorldUI";
 import ToastPanel from "./UI/ToastPanel";
+import ArkInWorld from "./ArkInWorld";
+import ArkUI from "./ArkUI";
+import CvsMain from "./CvsMain";
+import HomeUI from "./HomeUI";
 
 const { ccclass, property } = cc._decorator;
 
@@ -9,7 +13,7 @@ declare var Neb: any;
 declare var NebPay: any;
 declare var Account: any;
 declare var HttpRequest: any;
-export const ContractAddress = 'n1k24gSVj2vcZTuY3fgVwWzQij9CmkMkyUW';
+export const ContractAddress = 'n1nB2VRCu1rs2Hoi4W5D19w9jUkmzLJNi9E';
 export const EncKey = 37234;
 
 @ccclass
@@ -98,6 +102,7 @@ export default class BlockchainMgr extends cc.Component {
                 console.log('Change wallet address:', address);
                 BlockchainMgr.WalletAddress = address;
                 this.fetchAllDataCountdown = 0;
+                if (WorldUI.Instance.node.active || ArkUI.Instance.node.active) CvsMain.EnterUI(HomeUI);
             }
         }
     }
@@ -109,14 +114,32 @@ export default class BlockchainMgr extends cc.Component {
         let allIslandData = allData.island_info;
 
         allArkData.forEach(arkJson => {
-            let localData = DataMgr.othersData[arkJson.address];
-            if (!localData) {
-                localData = new UserData();
-                localData.currentLocation = new cc.Vec2(arkJson.lastLocationX, arkJson.lastLocationY);
-                DataMgr.othersData[arkJson.address] = localData;
-            }
-            for (let key in arkJson) {
-                localData[key] = arkJson[key];
+            if (arkJson.address == BlockchainMgr.WalletAddress) {
+                if (!DataMgr.myData) {
+                    //新前端
+                    DataMgr.myData = new UserData();
+                }
+                DataMgr.myData.arkSize = DataMgr.GetArkSizeByRecharge(arkJson.rechargeOnExpand);
+                if (!DataMgr.myData.nickname) DataMgr.myData.nickname = arkJson.nickname;
+                DataMgr.myData.address = arkJson.address;
+                if (!DataMgr.myData.country) DataMgr.myData.country = arkJson.country;
+                DataMgr.myData.speed = arkJson.speed;
+                DataMgr.myData.locationX = arkJson.locationX;
+                DataMgr.myData.locationY = arkJson.locationY;
+                DataMgr.myData.lastLocationTime = arkJson.lastLocationTime;
+                DataMgr.myData.destinationX = arkJson.destinationX;
+                DataMgr.myData.destinationY = arkJson.destinationY;
+                DataMgr.writeData();
+            } else {
+                let localData = DataMgr.othersData[arkJson.address];
+                if (!localData) {
+                    localData = new UserData();
+                    localData.currentLocation = new cc.Vec2(arkJson.locationX, arkJson.locationY);
+                    DataMgr.othersData[arkJson.address] = localData;
+                }
+                for (let key in arkJson) {
+                    localData[key] = arkJson[key];
+                }
             }
         });
         allIslandData.forEach(islandJson => {
@@ -131,6 +154,50 @@ export default class BlockchainMgr extends cc.Component {
         });
     }
 
+    claimArk(value: number) {
+        if (window['webExtensionWallet']) {
+            try {
+                const nickname = HomeUI.Instance.lblNickname.string;
+                const country = HomeUI.Instance.country;
+
+                var nebPay = new NebPay();
+                var serialNumber;
+                var callbackUrl = BlockchainMgr.BlockchainUrl;
+                var to = ContractAddress;
+                var value = 0;
+                var callFunction = 'claim_ark';
+                console.log("调用钱包claim_ark(", nickname, );
+                var callArgs = '["' + nickname + '","' + country + '"]';
+                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                    qrcode: {
+                        showQRCode: false
+                    },
+                    goods: {
+                        name: "test",
+                        desc: "test goods"
+                    },
+                    callback: callbackUrl,
+                    listener: this.claimArkCallback
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
+                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
+                '取消', null, '安装',
+                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        }
+    }
+    claimArkCallback(resp: string) {
+        console.log("claimArkCallback: ", resp);
+        if (resp.toString().substr(0, 5) != 'Error') {
+            ToastPanel.Toast('交易发送成功，请等待区块链出块');
+        } else {
+            ToastPanel.Toast('交易失败:' + resp);
+        }
+    }
+
     setSail(deltaData) {
         if (window['webExtensionWallet']) {
             try {
@@ -143,7 +210,7 @@ export default class BlockchainMgr extends cc.Component {
                 var callFunction = 'udpate_ark';
                 // let enc = BlockchainMgr.encrypto(score.toString(), EncKey, 25);
                 console.log("调用钱包", deltaData);
-                var callArgs = '["' + JSON.stringify(deltaData)+'"]';
+                var callArgs = '["' + JSON.stringify(deltaData) + '"]';
                 serialNumber = nebPay.call(to, value, callFunction, callArgs, {
                     qrcode: {
                         showQRCode: false
@@ -161,7 +228,7 @@ export default class BlockchainMgr extends cc.Component {
         } else {
             DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
                 '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '去安装',
+                '取消', null, '安装',
                 () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
         }
     }
@@ -170,8 +237,8 @@ export default class BlockchainMgr extends cc.Component {
         if (resp.toString().substr(0, 5) != 'Error') {
             ToastPanel.Toast('方舟引擎开始预热，预计1分钟内出发\n(交易发送成功，请等待区块链出块)');
             WorldUI.Instance.editSailDestinationMode = false;
-        }else{
-            ToastPanel.Toast('交易失败:'+ resp);
+        } else {
+            ToastPanel.Toast('交易失败:' + resp);
         }
     }
 

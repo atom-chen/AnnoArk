@@ -23,6 +23,26 @@ export class DataMgr {
     static populationGrowPerMin = 0;
     static researchRatePerMin = 0;
 
+    static SmallArkSize = 7;
+    static StdArkSize = 9;
+    static LargeArkSize = 15;
+
+    static RechargeToArkSize = [
+        [0, 9],
+        [0.04, 12],
+        [0.1, 15],
+        [1, 20],
+        [2, 25],
+        [4, 30],
+    ]
+    static GetArkSizeByRecharge(rechargeOnExpand: number) {
+        for (let i = this.RechargeToArkSize.length - 1; i >= 0; i--) {
+            if (rechargeOnExpand >= this.RechargeToArkSize[i][0]) {
+                return this.RechargeToArkSize[i][1];
+            }
+        }
+    }
+
     static readData() {
         try {
             let myData = JSON.parse(cc.sys.localStorage.getItem('user0'));
@@ -32,19 +52,23 @@ export class DataMgr {
             DataMgr.myTechData = JSON.parse(cc.sys.localStorage.getItem('user0Tech'));
             DataMgr.currentWorkingTech = JSON.parse(cc.sys.localStorage.getItem('user0CurrentWorkingTech'));
             DataMgr.changed = true;
-            console.log('finish read data');
+            console.log('finish read data', myData);
         } catch (error) {
             console.error(error);
         }
     }
+    static autosaveCountdown = 15;
     static writeData() {
         try {
-            cc.sys.localStorage.setItem('user0', JSON.stringify(DataMgr.myData));
-            cc.sys.localStorage.setItem('user0Building', JSON.stringify(DataMgr.myBuildingData));
-            cc.sys.localStorage.setItem('user0Cargo', JSON.stringify(DataMgr.myCargoData));
-            cc.sys.localStorage.setItem('user0Tech', JSON.stringify(DataMgr.myTechData));
-            cc.sys.localStorage.setItem('user0CurrentWorkingTech', JSON.stringify(DataMgr.currentWorkingTech));
-            console.log('finish write data');
+            if (DataMgr.myData) {
+                cc.sys.localStorage.setItem('user0', JSON.stringify(DataMgr.myData));
+                cc.sys.localStorage.setItem('user0Building', JSON.stringify(DataMgr.myBuildingData));
+                cc.sys.localStorage.setItem('user0Cargo', JSON.stringify(DataMgr.myCargoData));
+                cc.sys.localStorage.setItem('user0Tech', JSON.stringify(DataMgr.myTechData));
+                cc.sys.localStorage.setItem('user0CurrentWorkingTech', JSON.stringify(DataMgr.currentWorkingTech));
+                this.autosaveCountdown += 15;
+                console.log('finish write data',DataMgr.myBuildingData );
+            }
         } catch (error) {
             console.error(error);
         }
@@ -54,7 +78,6 @@ export class DataMgr {
         cc.sys.localStorage.removeItem('user0Building');
     }
 
-    
 }
 
 export class UserData {
@@ -62,20 +85,21 @@ export class UserData {
     address: string; //区块链地址
     country: string;
     arkSize: number; //0: 简陋方舟, 1, 2
-    currentLocation: cc.Vec2;
-    population: number = 0;
+    currentLocation: cc.Vec2 = cc.Vec2.ZERO;
+    population: number = 5;
     speed: number;
-    lastLocationX: number;
-    lastLocationY: number;
+    locationX: number;
+    locationY: number;
     lastLocationTime: number;
     destinationX: number;
     destinationY: number;
+    rechargeOnExpand: number; //扩建花了多少钱
 }
 export class BuildingInfo {
     id: string;
     Name: string;
-    length: number;
-    width: number;
+    Length: number;
+    Width: number;
 }
 export class BuildingData {
     id: string;
@@ -90,7 +114,7 @@ export class CargoInfo {
 }
 export class CargoData {
     id: string;
-    amount: number;
+    amount: number = 0;
 }
 export class TechInfo {
     id: string;
@@ -113,7 +137,7 @@ export class IslandData {
     marinePower: number = 0;
     tankPower: number = 0;
     shipPower: number = 0;
-    money: number = 0; 里面还有多少nas
+    money: number = 0; //里面还有多少nas
     sponsorAddress: string;//赞助商账号
     sponsorName: string = '';//赞助商名称
     sponsorLink: string;//赞助商链接

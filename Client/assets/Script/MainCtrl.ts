@@ -1,6 +1,6 @@
 import CvsMain from "./CvsMain";
 import HomeUI from "./HomeUI";
-import { DataMgr, UserData, CargoData, MineInfo, IslandData } from "./DataMgr";
+import { DataMgr, UserData, CargoData, MineInfo, IslandData, TechData } from "./DataMgr";
 import WorldUI from "./WorldUI";
 import IntroUI from "./UI/IntroUI";
 import Island from "./World/Island";
@@ -13,8 +13,41 @@ export default class MainCtrl extends cc.Component {
     onLoad() {
         MainCtrl.Instance = this;
         DataMgr.readData();
-        this.fetchRemoteData();
         CvsMain.Instance.uiContainer.getChildByName('WorldUI').active = true;
+
+        //加载数据
+        cc.loader.loadRes('Building', function (err, txt) {
+            console.log('Building loaded', txt);
+            DataMgr.BuildingConfig = txt;
+            if (!DataMgr.myBuildingData) DataMgr.myBuildingData = [];
+        }.bind(this));
+        cc.loader.loadRes('Cargo', function (err, txt) {
+            console.log('Cargo loaded');
+            DataMgr.CargoConfig = txt;
+            if (!DataMgr.myCargoData) {
+                DataMgr.myCargoData = [];
+                DataMgr.CargoConfig.forEach(cargoInfo => {
+                    let data = new CargoData();
+                    data.id = cargoInfo.id;
+                    data.amount = 0;
+                    DataMgr.myCargoData.push(data);
+                });
+            }
+        }.bind(this));
+        cc.loader.loadRes('Tech', function (err, txt) {
+            console.log('Tech loaded', txt);
+            DataMgr.TechConfig = txt;
+            if (!DataMgr.myTechData) {
+                DataMgr.myTechData = [];
+                DataMgr.TechConfig.forEach(techInfo => {
+                    let data = new TechData();
+                    data.id = techInfo.id;
+                    data.filledWork = 0;
+                    data.finished = false;
+                    DataMgr.myTechData.push(data);
+                });
+            }
+        }.bind(this));
     }
 
     static Ticks = 0;
@@ -22,19 +55,6 @@ export default class MainCtrl extends cc.Component {
     start() {
         CvsMain.EnterUI(IntroUI);
 
-        //加载数据
-        cc.loader.loadRes('Building', function (err, txt) {
-            console.log('Building loaded', txt);
-            DataMgr.BuildingConfig = txt;
-        }.bind(this));
-        cc.loader.loadRes('Cargo', function (err, txt) {
-            console.log('Cargo loaded');
-            DataMgr.CargoConfig = txt;
-        }.bind(this));
-        cc.loader.loadRes('Tech', function (err, txt) {
-            console.log('Tech loaded', txt);
-            DataMgr.TechConfig = txt;
-        }.bind(this));
         DataMgr.IronMineConfig = [];
         WorldUI.Instance.mineContainer.children.forEach(c => {
             const polygon = c.getComponent(cc.PolygonCollider);
@@ -64,44 +84,35 @@ export default class MainCtrl extends cc.Component {
         CvsMain.EnterUI(HomeUI);
     }
 
-    generateNewArk(size: number) {
+    generateSmallArkData() {
         let user = new UserData();
-        user.arkSize = size;
+        user.arkSize = DataMgr.SmallArkSize;
         let rad = Math.random() * Math.PI;
-        user.lastLocationX = Math.cos(rad) * 4000;
-        user.lastLocationY = Math.sin(rad) * 4000;
+        user.locationX = Math.cos(rad) * 4000;
+        user.locationY = Math.sin(rad) * 4000;
         user.speed = 0;
         user.population = 5;
-        user.nickname = "新玩家";
+        user.nickname = HomeUI.Instance.lblNickname.string;
+        user.country = HomeUI.Instance.country;
         this.calcSail(user);
         return user;
     }
 
-    fetchRemoteData() {
-        let othersData: UserData[] = [];
-
-        let user = new UserData();
-        user.arkSize = 41;
-        user.currentLocation = cc.Vec2.ZERO;
-        user.lastLocationX = 0;
-        user.lastLocationY = 0;
-        user.speed = 0;
-        user.population = 2251;
-        user.nickname = "星云号交易所方舟";
-        othersData.push(user);
-
-        DataMgr.othersData = othersData;
-        DataMgr.changed = true;
-    }
-
-
     update(dt: number) {
+        if (!DataMgr.BuildingConfig || !DataMgr.TechConfig || !DataMgr.CargoConfig) return;
+
         if (DataMgr.myData) {
             DataMgr.populationLimit = 0;
             DataMgr.researchRatePerMin = 0;
             DataMgr.aboveIronMine = false;
             let totalWorkers = 0;
 
+            //航行
+            this.calcSail(DataMgr.myData);
+            for (let address in DataMgr.othersData) {
+                this.calcSail(DataMgr.othersData[address]);
+            }
+            
             //检测所属矿区
             DataMgr.IronMineConfig.forEach(m => {
                 if (cc.Intersection.pointInPolygon(DataMgr.myData.currentLocation, m.points)) {
@@ -221,27 +232,25 @@ export default class MainCtrl extends cc.Component {
                     DataMgr.populationGrowPerMin = 0;
                 }
             }
-            //航行
-            this.calcSail(DataMgr.myData);
-            for (let address in DataMgr.othersData){
-                this.calcSail(DataMgr.othersData[address]);
-            }
+
+            if (DataMgr.autosaveCountdown <= 0) DataMgr.writeData();
         }
 
-        MainCtrl.Ticks ++;
+        DataMgr.autosaveCountdown -= dt;
+        MainCtrl.Ticks++;
     }
     calcSail(data: UserData) {
         if (data.speed && data.speed > 0 && data.destinationX && data.destinationY) {
             let lastTimestamp = data.lastLocationTime;
             let nowTimestamp = Number(new Date());
-            let lastLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
+            let lastLocation = new cc.Vec2(data.locationX, data.locationY);
             let destination = new cc.Vec2(data.destinationX, data.destinationY);
             let needTime = destination.sub(lastLocation).mag() / (data.speed / 60) * 1000;
             let curLocation = MainCtrl.lerpVec2(lastLocation, destination,
                 (nowTimestamp - lastTimestamp) / needTime, true);
             data.currentLocation = curLocation;
         } else {
-            data.currentLocation = new cc.Vec2(data.lastLocationX, data.lastLocationY);
+            data.currentLocation = new cc.Vec2(data.locationX, data.locationY);
         }
     }
 
