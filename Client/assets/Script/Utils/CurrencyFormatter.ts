@@ -10,7 +10,7 @@ export default class CurrencyFormatter{
     }
     static formatNAS(nas: number) {
         let log10 = Math.max(0, Math.floor(Math.log(nas) / Math.LN10));
-        return nas.toFixed(Math.min(4, Math.max(0, 4 - log10)));
+        return nas.toFixed(Math.min(3, Math.max(0, 4 - log10)));
     }
     static formatCNY(cny: number) {
         if (Math.abs(cny)<0.005) return '0';

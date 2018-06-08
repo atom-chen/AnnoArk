@@ -49,7 +49,6 @@ export default class HomeUI extends BaseUI {
             this.btnClaim2.getComponentInChildren(cc.Label).string = DataMgr.myData.arkSize < DataMgr.StdArkSize ? '领取' : DataMgr.myData.arkSize < DataMgr.LargeArkSize ? '无法领取' : '进入';
             this.btnClaim0.interactable = DataMgr.myData.arkSize < DataMgr.StdArkSize;
             this.btnClaim1.interactable = DataMgr.myData.arkSize < DataMgr.LargeArkSize;
-            console.log('this.btnClaim2.interactable', DataMgr.myData.arkSize, DataMgr.StdArkSize, DataMgr.LargeArkSize);
             this.btnClaim2.interactable = DataMgr.myData.arkSize < DataMgr.StdArkSize || DataMgr.myData.arkSize >= DataMgr.LargeArkSize;
             if (DataMgr.myData.nickname) this.lblNickname.string = DataMgr.myData.nickname;
             if (DataMgr.myData.country) this.country = DataMgr.myData.country;
@@ -125,7 +124,7 @@ export default class HomeUI extends BaseUI {
     }
 
     onBtnSponsorClick() {
-
+        // CvsMain.EnterUI(WorldUI);
     }
 
     onAddressClick() {

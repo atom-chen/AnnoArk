@@ -37,6 +37,10 @@ export default class AttackIslandPanel extends cc.Component {
     SldAtkChopper: cc.Slider = null;
     @property(cc.Slider)
     SldAtkShip: cc.Slider = null;
+    @property(cc.Label)
+    lblDistance: cc.Label = null;
+    @property(cc.Label)
+    lblMethane: cc.Label = null;
 
     tankMax = 0;
     chopperMax = 0;
@@ -49,9 +53,17 @@ export default class AttackIslandPanel extends cc.Component {
 
         let data = DataMgr.myData.address == island.data.occupant ? DataMgr.myData : DataMgr.othersData.find(d => d.address == island.data.occupant);
         this.lblOccupant.string = data ? data.nickname : island.data.occupant;
-        this.lblDefTank.string = island.data.tankPower.toFixed();
-        this.lblDefChopper.string = island.data.chopperPower.toFixed();
-        this.lblDefShip.string = island.data.shipPower.toFixed();
+
+        let powerAttenuRate = 0.05;
+        let hoursDelta = (Number(new Date()) - island.data.lastBattleTime) / (1000 * 3600);
+        let attenu = Math.exp(-powerAttenuRate * hoursDelta);
+        this.lblDefTank.string = (island.data.tankPower * attenu).toFixed();
+        this.lblDefChopper.string = (island.data.chopperPower * attenu).toFixed();
+        this.lblDefShip.string = (island.data.shipPower * attenu).toFixed();
+        this.SldAtkTank.progress = 0;
+        this.SldAtkChopper.progress = 0;
+        this.SldAtkShip.progress = 0;
+        this.refreshMethaneCost();
     }
 
     onSliderChange(event, cargoName: string) {
@@ -66,6 +78,7 @@ export default class AttackIslandPanel extends cc.Component {
                 this.edtAtkShip.string = (this.SldAtkShip.progress * this.shipMax).toFixed();
                 break;
         }
+        this.refreshMethaneCost();
     }
 
     onEditBoxChange(event, cargoName: string) {
@@ -89,6 +102,7 @@ export default class AttackIslandPanel extends cc.Component {
                 this.SldAtkShip.progress = count / this.shipMax;
                 break;
         }
+        this.refreshMethaneCost();
     }
 
     update(dt) {
@@ -100,12 +114,36 @@ export default class AttackIslandPanel extends cc.Component {
         this.lblAtkShipMax.string = '/' + this.shipMax.toFixed();
     }
 
+    refreshMethaneCost() {
+        const distance = this.island.node.position.sub(new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y)).mag();
+        const costMethane = DataMgr.getMethaneCostOfAttack(distance,
+            Math.round(this.SldAtkTank.progress * this.tankMax),
+            Math.round(this.SldAtkChopper.progress * this.chopperMax),
+            Math.round(this.SldAtkShip.progress * this.shipMax));
+        const totalMethane = DataMgr.myCargoData.find(d => d.id == 'methane74').amount;
+        this.lblDistance.string = distance.toFixed() + 'km';
+        this.lblMethane.string = costMethane.toFixed() + '/' + totalMethane.toFixed();
+    }
+
     onConfirmClick() {
         console.log('准备攻占资源岛', this.island);
-        const tank = Math.round(this.SldAtkTank.progress * this.tankMax);
-        const chopper = Math.round(this.SldAtkChopper.progress * this.chopperMax);
-        const ship = Math.round(this.SldAtkShip.progress * this.shipMax);
-        BlockchainMgr.Instance.attackIsland(this.island.data.id, tank, chopper, ship);
+
+        const distance = this.island.node.position.sub(new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y)).mag();
+        const costMethane = DataMgr.getMethaneCostOfAttack(distance,
+            Math.round(this.SldAtkTank.progress * this.tankMax),
+            Math.round(this.SldAtkChopper.progress * this.chopperMax),
+            Math.round(this.SldAtkShip.progress * this.shipMax));
+        const methaneData = DataMgr.myCargoData.find(d => d.id == 'methane74');
+        if (costMethane <= methaneData.amount) {
+            const tank = Math.round(this.SldAtkTank.progress * this.tankMax);
+            const chopper = Math.round(this.SldAtkChopper.progress * this.chopperMax);
+            const ship = Math.round(this.SldAtkShip.progress * this.shipMax);
+            BlockchainMgr.Instance.attackIsland(this.island.data.id, tank, chopper, ship, () => {
+                methaneData.amount = Math.max(0, methaneData.amount - costMethane);
+            });
+        } else {
+            DialogPanel.PopupWith1Button('燃料不足', '将方舟靠近目标，减少派兵数量，或者生产更多甲烷吧', '确定', null);
+        }
     }
 
     close() {

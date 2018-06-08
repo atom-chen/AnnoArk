@@ -17,12 +17,12 @@ export default class ArkInWorld extends cc.Component {
 
     data: UserData;
 
-    btnNode: cc.Node;
+    // btnNode: cc.Node;
 
     onLoad() {
-        this.btnNode = new cc.Node();
-        this.btnNode.parent = this.node;
-        this.btnNode.on(cc.Node.EventType.TOUCH_END, this.onClick);
+        // this.btnNode = new cc.Node();
+        // this.btnNode.parent = this.node;
+        // this.btnNode.on(cc.Node.EventType.TOUCH_END, this.onClick);
     }
 
     setAndRefresh(data: UserData, zoomScale: number) {
@@ -36,7 +36,7 @@ export default class ArkInWorld extends cc.Component {
 
     refreshZoom(zoomScale: number) {
         this.node.position = new cc.Vec2(this.data.currentLocation.x, this.data.currentLocation.y).mul(zoomScale);
-        this.btnNode.setContentSize(this.node.width + 50, this.node.height + 50);
+        // this.btnNode.setContentSize(this.node.width + 50, this.node.height + 50);
     }
 
     update(dt: number) {

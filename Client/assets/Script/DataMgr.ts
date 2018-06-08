@@ -42,9 +42,9 @@ export class DataMgr {
 
     static getArkSpeedByTech(hasTech?: boolean) {
         if (hasTech) {
-            return 200;
+            return 500;
         }
-        return 100;
+        return 200;
     }
 
     static GetArkSizeByRecharge(rechargeOnExpandInNas: number) {
@@ -53,6 +53,9 @@ export class DataMgr {
                 return this.RechargeToArkSize[i][1];
             }
         }
+    }
+    static getMethaneCostOfAttack(distance: number, tankPower, chopperPower, shipPower) {
+        return 0.001 * distance * (tankPower + chopperPower + shipPower);
     }
 
     static readData() {
@@ -158,6 +161,7 @@ export class IslandData {
     miningRate: number = 0.02;///h 挖矿百分比速度，实际挖矿速度=max(minMiningSpeed, money*miningRate）
     balanceMap: number = 0; //当前占领者可收获的NAS
     lastMineTime: number; //当前数据的时间戳
+    lastBattleTime: number;
 }
 export class IJ {
     i: number = 0;

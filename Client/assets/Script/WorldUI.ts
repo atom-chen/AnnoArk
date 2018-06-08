@@ -10,6 +10,7 @@ import Island from "./World/Island";
 import AttackIslandPanel from "./UI/AttackIslandPanel";
 import DialogPanel from "./DialogPanel";
 import CurrencyFormatter from "./Utils/CurrencyFormatter";
+import SponsorIslandPanel from "./UI/SponsorIslandPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -193,7 +194,7 @@ export default class WorldUI extends BaseUI {
             if (this.newDestination) {
                 let pos = new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y);
                 let distance = this.newDestination.sub(pos).mag();
-                let time = distance / DataMgr.myData.speed;
+                let time = distance / DataMgr.getArkSpeedByTech(DataMgr.myTechData.find(d => d.id == 'arkspeed1011').finished);
                 let methane = DataMgr.MethaneCostPerKmPerSize * distance * DataMgr.myData.arkSize;
                 let str = `${distance.toFixed()}km\n${time.toFixed()}min\n${methane.toFixed()}甲烷`;
                 this.lblDestinationInfo.string = str;
@@ -284,8 +285,15 @@ export default class WorldUI extends BaseUI {
     }
     onIslandSponsorLinkClick() {
         const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
-        if (island.data.sponsorLink) {
+        if (island && island.data.sponsorLink) {
             window.open(island.data.sponsorLink);
+        }
+    }
+    onIslandIWantSponsorClick() {
+        const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
+        if (island) {
+            SponsorIslandPanel.Instance.node.active = true;
+            SponsorIslandPanel.Instance.setData(island);
         }
     }
 

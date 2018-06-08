@@ -19,7 +19,7 @@ export default class Island extends cc.Component {
 
     data: IslandData;
     e;
-    
+
     btnNode: cc.Node;
 
     onLoad() {
@@ -40,16 +40,17 @@ export default class Island extends cc.Component {
     refresh() {
         if (!this.data) return;
         this.lblName.string = this.data.sponsorName + ' 资源岛';
-        this.lblLeftMoney.string = '当前储量' + CurrencyFormatter.formatNAS(this.data.money / 1e18) + 'NAS';
-        let speed = this.data.miningRate * this.data.money / 1e18;
+        let curMoney = this.data.money * (1 - Math.exp(-this.data.miningRate * (Number(new Date()) - this.data.lastMineTime) / (1000 * 3600)));
+        this.lblLeftMoney.string = '当前储量' + CurrencyFormatter.formatNAS(curMoney / 1e18) + 'NAS';
+        let speed = this.data.miningRate * curMoney / 1e18;
         this.lblMiningSpeed.string = '采集速度' + CurrencyFormatter.formatNAS(speed) + 'NAS/小时';
         if (this.data.occupant && this.data.occupant.length > 0) {
-            let occupant = this.data.occupant == DataMgr.myData.address ? DataMgr.myData: DataMgr.othersData[this.data.occupant];
+            let occupant = this.data.occupant == DataMgr.myData.address ? DataMgr.myData : DataMgr.othersData[this.data.occupant];
             this.lblOccupant.string = '占领者 ' + (occupant ? occupant.nickname : this.data.occupant);
         } else {
             this.lblOccupant.string = '无人占领';
         }
-        this.btnNode.setContentSize(this.node.width + 50, this.node.height + 50);
+        this.btnNode.setContentSize(this.node.width + 5, this.node.height + 5);
     }
 
     onLinkClick() {

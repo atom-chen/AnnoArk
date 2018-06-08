@@ -7,7 +7,6 @@ export class FlagMgr {
         try {
             if (FlagMgr.flagNames.find(f => f == country)) {
                 cc.loader.loadRes("flags/" + country, cc.SpriteFrame, function (err, spriteFrame) {
-                    console.log('err sprF', err, spriteFrame);
                     if (!err) spr.spriteFrame = spriteFrame;
                 });
             } else {
