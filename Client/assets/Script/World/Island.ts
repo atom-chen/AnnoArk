@@ -41,7 +41,7 @@ export default class Island extends cc.Component {
         if (!this.data) return;
         this.lblName.string = this.data.sponsorName + ' 资源岛';
         this.lblLeftMoney.string = '当前储量' + CurrencyFormatter.formatNAS(this.data.money / 1e18) + 'NAS';
-        let speed = Math.max(this.data.minMiningSpeed, this.data.miningRate * this.data.money / 1e18);
+        let speed = this.data.miningRate * this.data.money / 1e18;
         this.lblMiningSpeed.string = '采集速度' + CurrencyFormatter.formatNAS(speed) + 'NAS/小时';
         if (this.data.occupant && this.data.occupant.length > 0) {
             const occupant = DataMgr.othersData[this.data.occupant];

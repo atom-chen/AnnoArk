@@ -29,6 +29,7 @@ export default class ArkUI extends BaseUI {
         });
         this.panPad.on(cc.Node.EventType.TOUCH_MOVE, this.onPanPadTouchMove, this);
         this.panPad.on(cc.Node.EventType.MOUSE_WHEEL, this.onMouseWheel, this);
+        this.panPad.on(cc.Node.EventType.TOUCH_END, this.deselectBuilding, this);
 
         this.cells = [];
         for (let i = -50; i <= 50; i++) {
@@ -124,7 +125,15 @@ export default class ArkUI extends BaseUI {
         for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
             const cargoInfo = DataMgr.CargoConfig[i];
             let data = DataMgr.myCargoData.find(d => d.id == cargoInfo.id);
-            this.cargoLabels[cargoInfo.id].string = cargoInfo.Name + '   ' + Math.floor(data ? data.amount : 0).toFixed();
+            let estimateRate: number = DataMgr.outputRates[cargoInfo.id];
+            if (!estimateRate) estimateRate = 0;
+            let str = cargoInfo.Name + '   ' + Math.floor(data ? data.amount : 0).toFixed() + '(' + (estimateRate > 0 ? '+' : '') + estimateRate.toFixed() + ')';
+            if (cargoInfo.id == 'fish34509') {
+                if (data.amount <= 0 && estimateRate < 0) {
+                    str += ' 食物短缺';
+                }
+            }
+            this.cargoLabels[cargoInfo.id].string = str;
         }
 
         let prog = this.sldZoom.progress;
@@ -190,6 +199,9 @@ export default class ArkUI extends BaseUI {
     }
     onTechClick() {
         this.deselectBuilding();
+        if (!DataMgr.myBuildingData.find(d => d.id == 'research239')) {
+            DialogPanel.PopupWith1Button('没有研究院', '建造研究院并指派工作人员进行研究', '确定', null);
+        }
         TechPanel.Show();
     }
 

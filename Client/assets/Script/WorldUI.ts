@@ -7,6 +7,9 @@ import { DataMgr } from "./DataMgr";
 import BlockchainMgr from "./BlockchainMgr";
 import HomeUI from "./HomeUI";
 import Island from "./World/Island";
+import AttackIslandPanel from "./UI/AttackIslandPanel";
+import DialogPanel from "./DialogPanel";
+import CurrencyFormatter from "./Utils/CurrencyFormatter";
 
 const { ccclass, property } = cc._decorator;
 
@@ -53,6 +56,8 @@ export default class WorldUI extends BaseUI {
     selectFrame: cc.Node = null;
     @property(cc.Button)
     btnSponsorLink: cc.Button = null;
+    @property(cc.Label)
+    lblAttackButton: cc.Label = null;
 
     @property(cc.Node)
     panPad: cc.Node = null;
@@ -149,11 +154,20 @@ export default class WorldUI extends BaseUI {
             let arkIW = this.selectedObjectNode.getComponent(ArkInWorld);
             let island = this.selectedObjectNode.getComponent(Island);
             if (arkIW) {
-
                 this.grpSelectObject.active = false;
             } else if (island) {
                 this.btnSponsorLink.getComponentInChildren(cc.Label).string =
                     island.data.sponsorName ? island.data.sponsorName : '无赞助商';
+                if (island.data.occupant && island.data.occupant == DataMgr.myData.address) {
+                    const t0 = island.data.dataTimestamp;
+                    const t1 = Number(new Date());
+                    const t = (t1 - t0) / 1000 / 86400;//h
+                    const r = island.data.miningRate;
+                    const m = island.data.money * (1 - Math.exp(-r * t));
+                    this.lblAttackButton.string = '收取\n' + CurrencyFormatter.formatNAS(m) + 'NAS';
+                } else {
+                    this.lblAttackButton.string = '攻占';
+                }
                 this.grpSelectObject.active = true;
             }
         } else {
@@ -165,6 +179,14 @@ export default class WorldUI extends BaseUI {
         if (this.editSailDestinationMode) {
             this.grpSail.active = true;
             this.sailDestinationIndicator.active = this.newDestination != null;
+            if (this.newDestination) {
+                let pos = new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y);
+                let distance = this.newDestination.sub(pos).mag();
+                let time = distance / DataMgr.myData.speed;
+                let methane = DataMgr.MethaneCostPerKmPerSize * distance * DataMgr.myData.arkSize;
+                let str = `${distance.toFixed()}km\n${time.toFixed()}min\n${methane.toFixed()}甲烷`;
+                this.lblDestinationInfo.string = str;
+            }
         } else {
             this.grpSail.active = false;
             this.sailDestinationIndicator.active = false;
@@ -234,8 +256,16 @@ export default class WorldUI extends BaseUI {
     cancelSelectObject() {
         this.selectedObjectNode = null;
     }
-    onBtnAttackIslandClick(island: Island) {
-
+    onBtnAttackIslandClick() { //有时候是收获哦
+        const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
+        if (!island) return;
+        if (island.data.occupant == DataMgr.myData.address) {
+            BlockchainMgr.Instance.collectIslandMoney(island.data.id);
+        }
+        else {
+            AttackIslandPanel.Instance.node.active = true;
+            AttackIslandPanel.Instance.setAndRefresh(island);
+        }
     }
     onIslandSponsorLinkClick(island: Island) {
         if (island.data.sponsorLink) {
@@ -250,29 +280,52 @@ export default class WorldUI extends BaseUI {
     grpSail: cc.Node = null;
     @property(cc.Node)
     sailDestinationIndicator: cc.Node = null;
+    @property(cc.Label)
+    lblDestinationInfo: cc.Label = null;
     @property(cc.Node)
     btnCancelSail: cc.Node = null;
     @property(cc.Node)
     btnConfirmSail: cc.Node = null;
+
     onBtnSailClick() {
-        this.selectedArkNode = null;
+        this.selectedObjectNode = null;
         this.editSailDestinationMode = true;
         this.newDestination = null;
+        const arkSpeedTechData = DataMgr.myTechData.find(d => d.id == 'arkspeed1011');
+        const myData = DataMgr.myData;
+        myData.speed = DataMgr.getArkSpeedByTech(arkSpeedTechData ? arkSpeedTechData.finished : false);
     }
     onCancelSailClick() {
         this.editSailDestinationMode = false;
         this.newDestination = null;
     }
     onConfirmSailClick() {
-        console.log('调用合约咯');
         const myData = DataMgr.myData;
-        myData.speed = 200;
+        if (myData.arkSize <= DataMgr.SmallArkSize) {
+            DialogPanel.PopupWith1Button('简陋方舟无法航行', '您的方舟是简陋方舟，没有扩建功能，请原地呆着吧。\n想要功能完整的方舟？请回到主界面领取标准方舟或大型方舟。需要安装星云钱包哦！', '知道了', null);
+            return;
+        }
+        let pos = new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y);
+        let distance = this.newDestination.sub(pos).mag();
+        let needMethane = DataMgr.MethaneCostPerKmPerSize * distance * DataMgr.myData.arkSize;
+        let methaneData = DataMgr.myCargoData.find(d => d.id == 'methane74');
+        if (needMethane > methaneData.amount) {
+            DialogPanel.PopupWith1Button('燃料不足', '方舟引擎的唯一动力来源是甲烷。如果你想要环球旅行，多造一些[甲烷采集器]吧！', '知道了', null);
+            return;
+        }
+
+        const arkSpeedTechData = DataMgr.myTechData.find(d => d.id == 'arkspeed1011');
+        myData.speed = DataMgr.getArkSpeedByTech(arkSpeedTechData ? arkSpeedTechData.finished : false);
         let deltaData = {};
         deltaData['speed'] = myData.speed;
         deltaData['locationX'] = myData.currentLocation.x;
         deltaData['locationY'] = myData.currentLocation.y;
         deltaData['destinationX'] = this.newDestination.x;
         deltaData['destinationY'] = this.newDestination.y;
-        BlockchainMgr.Instance.setSail(deltaData);
+
+        console.log('ConfirmSail', deltaData);
+        BlockchainMgr.Instance.setSail(deltaData, () => {
+            methaneData.amount = Math.max(0, methaneData.amount - needMethane);
+        });
     }
 }

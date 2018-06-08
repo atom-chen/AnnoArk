@@ -4,6 +4,7 @@ import { DataMgr, UserData, CargoData, MineInfo, IslandData, TechData } from "./
 import WorldUI from "./WorldUI";
 import IntroUI from "./UI/IntroUI";
 import Island from "./World/Island";
+import ToastPanel from "./UI/ToastPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -22,7 +23,7 @@ export default class MainCtrl extends cc.Component {
             if (!DataMgr.myBuildingData) DataMgr.myBuildingData = [];
         }.bind(this));
         cc.loader.loadRes('Cargo', function (err, txt) {
-            console.log('Cargo loaded');
+            console.log('Cargo loaded', txt, DataMgr.myCargoData);
             DataMgr.CargoConfig = txt;
             if (!DataMgr.myCargoData) {
                 DataMgr.myCargoData = [];
@@ -35,7 +36,7 @@ export default class MainCtrl extends cc.Component {
             }
         }.bind(this));
         cc.loader.loadRes('Tech', function (err, txt) {
-            console.log('Tech loaded', txt);
+            console.log('Tech loaded', txt, DataMgr.myTechData);
             DataMgr.TechConfig = txt;
             if (!DataMgr.myTechData) {
                 DataMgr.myTechData = [];
@@ -91,7 +92,6 @@ export default class MainCtrl extends cc.Component {
         user.locationX = Math.cos(rad) * 4000;
         user.locationY = Math.sin(rad) * 4000;
         user.speed = 0;
-        user.population = 5;
         user.nickname = HomeUI.Instance.lblNickname.string;
         user.country = HomeUI.Instance.country;
         this.calcSail(user);
@@ -105,6 +105,7 @@ export default class MainCtrl extends cc.Component {
             DataMgr.populationLimit = 0;
             DataMgr.researchRatePerMin = 0;
             DataMgr.aboveIronMine = false;
+            DataMgr.outputRates = {};
             let totalWorkers = 0;
 
             //航行
@@ -112,7 +113,7 @@ export default class MainCtrl extends cc.Component {
             for (let address in DataMgr.othersData) {
                 this.calcSail(DataMgr.othersData[address]);
             }
-            
+
             //检测所属矿区
             DataMgr.IronMineConfig.forEach(m => {
                 if (cc.Intersection.pointInPolygon(DataMgr.myData.currentLocation, m.points)) {
@@ -138,19 +139,23 @@ export default class MainCtrl extends cc.Component {
                             if (techData.filledWork >= techInfo.Work) {
                                 techData.finished = true;
                                 DataMgr.currentWorkingTech = null;
+                                ToastPanel.Toast('新科技研究完成，请制定下一个研究计划');
                             }
                             DataMgr.researchRatePerMin += buildingData.workers * 1;
                         }
                     } else {
                         //生产
                         if (buildingData.workers <= 0) return;
-                        if (buildingData.id == 'ironcoll28' && !DataMgr.aboveIronMine) return;
+                        // if (buildingData.id == 'ironcoll28' && !DataMgr.aboveIronMine) return;
                         let buildingInfo = DataMgr.BuildingConfig.find(info => info.id == buildingData.id);
                         let raws = [];
                         for (let i = 0; i < 4; i++) {
                             let rawid = buildingInfo['Raw' + i];
                             if (rawid && rawid.length > 0) {
-                                raws.push([rawid, buildingInfo['Raw' + i + 'Rate'] / buildingInfo['MaxHuman'] / 60 * dt * buildingData.workers]);
+                                const rate = buildingInfo['Raw' + i + 'Rate'] / buildingInfo['MaxHuman'] * buildingData.workers;
+                                raws.push([rawid, rate / 60 * dt]);
+                                if (!DataMgr.outputRates[rawid]) DataMgr.outputRates[rawid] = 0;
+                                DataMgr.outputRates[rawid] -= rate;
                             }
                         }
                         let enough = true;
@@ -178,7 +183,11 @@ export default class MainCtrl extends cc.Component {
                                         cargoData.amount = 0;
                                         DataMgr.myCargoData.push(cargoData);
                                     }
-                                    cargoData.amount += buildingInfo['Out' + i + 'Rate'] / buildingInfo['MaxHuman'] / 60 * dt * buildingData.workers;
+                                    const rate = buildingInfo['Out' + i + 'Rate'] / buildingInfo['MaxHuman'] * buildingData.workers;
+                                    cargoData.amount += rate / 60 * dt;
+
+                                    if (!DataMgr.outputRates[outid]) DataMgr.outputRates[outid] = 0;
+                                    DataMgr.outputRates[outid] += rate;
                                 }
                             }
                             buildingData.isWorking = true;
@@ -189,7 +198,10 @@ export default class MainCtrl extends cc.Component {
             DataMgr.idleWorkers = DataMgr.myData.population - totalWorkers;
             if (DataMgr.myData && DataMgr.myCargoData) {
                 //检查食物
-                let needToConsumeFood = DataMgr.myData.population * 1 / 60 * dt;
+                let rate = DataMgr.myData.population * 1;
+                let needToConsumeFood = rate / 60 * dt;
+                if (!DataMgr.outputRates['fish34509']) DataMgr.outputRates['fish34509'] = 0;
+                DataMgr.outputRates['fish34509'] -= rate;
                 let oriNeedToConsumeFood = needToConsumeFood;
                 DataMgr.CargoConfig.forEach(info => {
                     if (info['IsFood'] != 'TRUE') return;

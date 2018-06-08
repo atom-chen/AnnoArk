@@ -22,19 +22,30 @@ export class DataMgr {
     static changed = false;
     static populationGrowPerMin = 0;
     static researchRatePerMin = 0;
+    static outputRates = {};
 
     static SmallArkSize = 7;
     static StdArkSize = 9;
     static LargeArkSize = 15;
 
+    static MethaneCostPerKmPerSize = 0.01;
+
     static RechargeToArkSize = [
         [0, 9],
-        [0.04, 13],
+        [0.01, 13],
         [0.1, 17],
         [1, 21],
         [2, 25],
         [4, 30],
     ]
+
+    static getArkSpeedByTech(hasTech?: boolean){
+        if (hasTech) {
+            return 200;
+        }
+        return 100;
+    }
+
     static GetArkSizeByRecharge(rechargeOnExpandInNas: number) {
         for (let i = this.RechargeToArkSize.length - 1; i >= 0; i--) {
             if (rechargeOnExpandInNas >= this.RechargeToArkSize[i][0]) {
@@ -86,8 +97,8 @@ export class UserData {
     country: string;
     arkSize: number; //0: 简陋方舟, 1, 2
     currentLocation: cc.Vec2 = cc.Vec2.ZERO;
-    population: number = 5;
-    speed: number;
+    population: number = 8;
+    speed: number = 0; //km/分钟
     locationX: number;
     locationY: number;
     lastLocationTime: number;
@@ -100,6 +111,7 @@ export class BuildingInfo {
     Name: string;
     Length: number;
     Width: number;
+    MaxHuman;
 }
 export class BuildingData {
     id: string;
@@ -143,7 +155,7 @@ export class IslandData {
     sponsorLink: string;//赞助商链接
     minMiningSpeed: number = 0.04167; //NAS/h 挖矿速度
     miningRate: number = 0.02;///h 挖矿百分比速度，实际挖矿速度=max(minMiningSpeed, money*miningRate）
-    occupantBalance: number = 0; //当前占领者可收获的NAS
+    balanceMap: number = 0; //当前占领者可收获的NAS
     dataTimestamp: number; //当前数据的时间戳
 }
 export class IJ {
