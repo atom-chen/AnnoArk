@@ -159,7 +159,7 @@ export default class WorldUI extends BaseUI {
                 this.btnSponsorLink.getComponentInChildren(cc.Label).string =
                     island.data.sponsorName ? island.data.sponsorName : '无赞助商';
                 if (island.data.occupant && island.data.occupant == DataMgr.myData.address) {
-                    const t0 = island.data.dataTimestamp;
+                    const t0 = island.data.lastMineTime;
                     const t1 = Number(new Date());
                     const t = (t1 - t0) / 1000 / 86400;//h
                     const r = island.data.miningRate;

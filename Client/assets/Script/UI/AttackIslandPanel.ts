@@ -48,11 +48,11 @@ export default class AttackIslandPanel extends cc.Component {
         this.island = island;
 
         this.lblDefTank.string = island.data.tankPower.toFixed();
-        //TODO: this.lblDefChopper.string = island.data.chopperPower.toFixed();
+        this.lblDefChopper.string = island.data.chopperPower.toFixed();
         this.lblDefShip.string = island.data.shipPower.toFixed();
     }
 
-    onSliderChange(cargoName: string) {
+    onSliderChange(event, cargoName: string) {
         switch (cargoName) {
             case 'Tank':
                 this.edtAtkTank.string = (this.SldAtkTank.progress * this.tankMax).toFixed();
@@ -66,16 +66,25 @@ export default class AttackIslandPanel extends cc.Component {
         }
     }
 
-    onEditBoxChange(cargoName: string) {
+    onEditBoxChange(event, cargoName: string) {
         switch (cargoName) {
             case 'Tank':
-                this.SldAtkTank.progress = parseInt(this.edtAtkTank.string) / this.tankMax;
+                let count = parseInt(this.edtAtkTank.string);
+                count = Math.max(0, Math.min(this.tankMax, count));
+                this.edtAtkTank.string = count.toFixed();
+                this.SldAtkTank.progress = count / this.tankMax;
                 break;
             case 'Chopper':
-                this.SldAtkChopper.progress = parseInt(this.edtAtkChopper.string) / this.chopperMax;
+                count = parseInt(this.edtAtkChopper.string);
+                count = Math.max(0, Math.min(this.chopperMax, count));
+                this.edtAtkChopper.string = count.toFixed();
+                this.SldAtkChopper.progress = count / this.chopperMax;
                 break;
             case 'Ship':
-                this.SldAtkShip.progress = parseInt(this.edtAtkShip.string) / this.shipMax;
+                count = parseInt(this.edtAtkShip.string);
+                count = Math.max(0, Math.min(this.shipMax, count));
+                this.edtAtkShip.string = count.toFixed();
+                this.SldAtkShip.progress = count / this.shipMax;
                 break;
         }
     }

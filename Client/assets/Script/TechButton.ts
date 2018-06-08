@@ -31,7 +31,7 @@ export default class TechButton extends cc.Component {
         this.prgWork.progress = this.data.filledWork / this.info.Work;
         if (DataMgr.currentWorkingTech == this.info.id) {
             this.gear.active = true;
-            this.gear.rotation += 36 * DataMgr.researchRatePerMin * dt;
+            this.gear.rotation += 18 * DataMgr.researchRatePerMin * dt;
         } else {
             this.gear.active = false;
         }

@@ -26,7 +26,7 @@ export class DataMgr {
 
     static SmallArkSize = 7;
     static StdArkSize = 9;
-    static LargeArkSize = 15;
+    static LargeArkSize = 21;
 
     static MethaneCostPerKmPerSize = 0.01;
 
@@ -147,17 +147,17 @@ export class IslandData {
     location: cc.Vec2;
     id: number;
     occupant: string; //当前占领者addr
-    marinePower: number = 0;
     tankPower: number = 0;
+    chopperPower: number = 0;
     shipPower: number = 0;
     money: number = 0; //里面还有多少nas
-    sponsorAddress: string;//赞助商账号
+    sponsor: string;//赞助商账号
     sponsorName: string = '';//赞助商名称
     sponsorLink: string;//赞助商链接
-    minMiningSpeed: number = 0.04167; //NAS/h 挖矿速度
+    // minMiningSpeed: number = 0.04167; //NAS/h 挖矿速度
     miningRate: number = 0.02;///h 挖矿百分比速度，实际挖矿速度=max(minMiningSpeed, money*miningRate）
     balanceMap: number = 0; //当前占领者可收获的NAS
-    dataTimestamp: number; //当前数据的时间戳
+    lastMineTime: number; //当前数据的时间戳
 }
 export class IJ {
     i: number = 0;

@@ -350,11 +350,11 @@ export default class ArkUI extends BaseUI {
             DialogPanel.PopupWith2Buttons('确定拆除建筑吗',
                 self.selectedBuilding.info.Name
                 + '\n建筑材料不予返还',
+                '取消', null,
                 '拆除', () => {
                     self.demolishBuilding(self.selectedBuilding);
                     self.deselectBuilding();
-                },
-                '取消', null);
+                });
         }
     }
     demolishBuilding(building: Building) {

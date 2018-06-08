@@ -113,7 +113,7 @@ export default class HomeUI extends BaseUI {
                 }
                 case '2': {
                     //调用合约
-                    BlockchainMgr.Instance.claimArk(0.1);
+                    BlockchainMgr.Instance.claimArk(0.01);
                     break;
                 }
             }

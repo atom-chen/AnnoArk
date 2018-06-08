@@ -171,7 +171,6 @@ export default class BlockchainMgr extends cc.Component {
                 var serialNumber;
                 var callbackUrl = BlockchainMgr.BlockchainUrl;
                 var to = ContractAddress;
-                var value = 0;
                 var callFunction = 'claim_ark';
                 console.log("调用钱包claim_ark(", nickname, );
                 var callArgs = '["' + nickname + '","' + country + '"]';
@@ -314,7 +313,7 @@ export default class BlockchainMgr extends cc.Component {
                 var callFunction = 'attack_island';
                 console.log("调用钱包attack_island(", islandId, tank, chopper, ship);
                 var callArgs = JSON.stringify([islandId, tank, chopper, ship]);
-                serialNumber = nebPay.call(to, value, callFunction, null, {
+                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
                     qrcode: {
                         showQRCode: false
                     },
@@ -336,7 +335,7 @@ export default class BlockchainMgr extends cc.Component {
         }
     }
     attackIslandCallback(resp) {
-        console.log("claimArkCallback: ", resp);
+        console.log("attackIslandCallback: ", resp);
         if (resp.toString().substr(0, 5) != 'Error') {
             AttackIslandPanel.Instance.close();
             DialogPanel.PopupWith2Buttons('您的部队已出发',
@@ -359,7 +358,7 @@ export default class BlockchainMgr extends cc.Component {
                 var callFunction = 'collect_island_money';
                 console.log("调用钱包collect_island_money(", islandId, );
                 var callArgs = JSON.stringify([islandId]);
-                serialNumber = nebPay.call(to, value, callFunction, null, {
+                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
                     qrcode: {
                         showQRCode: false
                     },
