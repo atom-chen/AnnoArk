@@ -16,7 +16,10 @@ const { ccclass, property } = cc._decorator;
 export default class ArkUI extends BaseUI {
     static Instance: ArkUI;
     onLoad() {
+        console.log('ark onl')
         ArkUI.Instance = this;
+        this.node.active = false;
+
         let self = this;
         this.sldZoom.node.getChildByName('Handle').on(cc.Node.EventType.TOUCH_START, function (event) {
             self.pressingZoomSlider = true;
@@ -50,14 +53,6 @@ export default class ArkUI extends BaseUI {
         let label = labelNode.getComponent(cc.Label);
         label.string = '人口';
         this.cargoLabels['population'] = label;
-        DataMgr.CargoConfig.forEach(cargoInfo => {
-            let labelNode = cc.instantiate(this.cargoLabelTemplate);
-            labelNode.parent = this.cargoLabelContainer;
-            let label = labelNode.getComponent(cc.Label);
-            label.string = cargoInfo.Name;
-            this.cargoLabels[cargoInfo.id] = label;
-        });
-        this.cargoLabelTemplate.active = false;
 
         // this.node.getChildByName('GrpBuildInfo').getChildByName('DeselectPad').on(cc.Node.EventType.TOUCH_START, ()=>{ArkUI.Instance.deselectBuilding();});
     }
@@ -81,6 +76,17 @@ export default class ArkUI extends BaseUI {
     sldZoom: cc.Slider = null;
     pressingZoomSlider = false;
     zoomScale: number = 1;
+
+    start() {
+        DataMgr.CargoConfig.forEach(cargoInfo => {
+            let labelNode = cc.instantiate(this.cargoLabelTemplate);
+            labelNode.parent = this.cargoLabelContainer;
+            let label = labelNode.getComponent(cc.Label);
+            label.string = cargoInfo.Name;
+            this.cargoLabels[cargoInfo.id] = label;
+        });
+        this.cargoLabelTemplate.active = false;
+    }
 
     onEnable() {
         this.refreshZoom();

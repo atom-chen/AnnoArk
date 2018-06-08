@@ -1,6 +1,7 @@
 import { DataMgr } from "../DataMgr";
 import ToastPanel from "./ToastPanel";
 import HomeUI from "../HomeUI";
+import { FlagMgr } from "./FlagMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -26,14 +27,12 @@ export default class EditNicknamePanel extends cc.Component {
         //创建点击国旗事件
         var self = this;
         this.flagTemplate.active = true;
-        this.flagNames.forEach(flagName => {
+        FlagMgr.flagNames.forEach(flagName => {
             let node = cc.instantiate(this.flagTemplate);
             node.name = flagName;
             node.parent = this.flagContainer;
             let spr = node.getComponent(cc.Sprite);
-            cc.loader.loadRes("flags/" + flagName, cc.SpriteFrame, function (err, spriteFrame) {
-                spr.spriteFrame = spriteFrame;
-            });
+            FlagMgr.setFlag(spr, flagName);
             node.on(cc.Node.EventType.TOUCH_END, () => this.onFlagClick(node));
         });
         this.flagTemplate.active = false;
@@ -73,7 +72,4 @@ export default class EditNicknamePanel extends cc.Component {
         this.node.active = false;
     }
 
-    flagNames = [
-        'chn', 'usa', 'jap', 'kor'
-    ]
 }

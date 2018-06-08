@@ -9,7 +9,7 @@ export default class CvsMain extends cc.Component {
 
     onLoad() {
         CvsMain.Instance = this;
-        this.uiContainer.children.forEach(c => c.active = false);
+        this.uiContainer.children.forEach(c => c.active = true);
     }
 
     @property(cc.Node)

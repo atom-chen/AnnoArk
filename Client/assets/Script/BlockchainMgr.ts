@@ -14,7 +14,7 @@ declare var Neb: any;
 declare var NebPay: any;
 declare var Account: any;
 declare var HttpRequest: any;
-export const ContractAddress = 'n22y8Bg9WyGJUr2hLf33SnSwdkuiKX5VonV';
+export const ContractAddress = 'n1giVTSQGgREHZ4VwCyE8HKxY7eBqpnas1p';
 export const EncKey = 37234;
 
 @ccclass
@@ -37,14 +37,6 @@ export default class BlockchainMgr extends cc.Component {
     start() {
         this.checkWalletCountdown = 1;
         this.fetchAllDataCountdown = 1;
-
-        console.log('======test');
-        let data = new UserData();
-        data.nickname = '你好呀';
-        data.speed = 1000;
-        console.log('1', JSON.stringify(data));
-        console.log('2', JSON.stringify(JSON.stringify(data)));
-        console.log('3', JSON.stringify(JSON.stringify(JSON.stringify(data))));
     }
 
     //不断刷新当前钱包地址
@@ -111,9 +103,13 @@ export default class BlockchainMgr extends cc.Component {
                 console.log('Change wallet address:', address);
                 BlockchainMgr.WalletAddress = address;
                 this.fetchAllDataCountdown = 0;
-                if (DataMgr.myData && DataMgr.myData.address != address &&
-                    (WorldUI.Instance.node.active || ArkUI.Instance.node.active)) {
-                    CvsMain.EnterUI(HomeUI);
+                try {
+                    if (DataMgr.myData && DataMgr.myData.address != address &&
+                        (WorldUI.Instance.node.active || ArkUI.Instance.node.active)) {
+                        CvsMain.EnterUI(HomeUI);
+                    }
+                } catch (error) {
+                    console.error(error);
                 }
             }
         }
@@ -132,8 +128,10 @@ export default class BlockchainMgr extends cc.Component {
                     //新前端
                     DataMgr.myData = new UserData();
                 }
-                DataMgr.myData.arkSize = DataMgr.GetArkSizeByRecharge(arkJson.rechargeOnExpand / 1e18);
                 if (!DataMgr.myData.nickname) DataMgr.myData.nickname = arkJson.nickname;
+                if (DataMgr.myData.address != arkJson.address && (WorldUI.Instance.node.active || ArkUI.Instance.node.active)) {
+                    CvsMain.EnterUI(HomeUI);
+                }
                 DataMgr.myData.address = arkJson.address;
                 if (!DataMgr.myData.country) DataMgr.myData.country = arkJson.country;
                 DataMgr.myData.speed = arkJson.speed;
@@ -143,6 +141,7 @@ export default class BlockchainMgr extends cc.Component {
                 DataMgr.myData.destinationX = arkJson.destinationX;
                 DataMgr.myData.destinationY = arkJson.destinationY;
                 DataMgr.myData.rechargeOnExpand = arkJson.rechargeOnExpand;
+                DataMgr.myData.arkSize = DataMgr.GetArkSizeByRecharge(arkJson.rechargeOnExpand / 1e18);
                 DataMgr.writeData();
             } else {
                 DataMgr.othersData[arkJson.address] = arkJson;

@@ -7,6 +7,7 @@ import ToastPanel from "./UI/ToastPanel";
 import BlockchainMgr from "./BlockchainMgr";
 import DialogPanel from "./DialogPanel";
 import EditNicknamePanel from "./UI/EditNicknamePanel";
+import { FlagMgr } from "./UI/FlagMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -14,7 +15,9 @@ const { ccclass, property } = cc._decorator;
 export default class HomeUI extends BaseUI {
     static Instance: HomeUI;
     onLoad() {
+        console.log('home onl')
         HomeUI.Instance = this;
+        this.node.active = false;
     }
 
     @property(cc.Button)
@@ -46,6 +49,7 @@ export default class HomeUI extends BaseUI {
             this.btnClaim2.getComponentInChildren(cc.Label).string = DataMgr.myData.arkSize < DataMgr.StdArkSize ? '领取' : DataMgr.myData.arkSize < DataMgr.LargeArkSize ? '无法领取' : '进入';
             this.btnClaim0.interactable = DataMgr.myData.arkSize < DataMgr.StdArkSize;
             this.btnClaim1.interactable = DataMgr.myData.arkSize < DataMgr.LargeArkSize;
+            console.log('this.btnClaim2.interactable', DataMgr.myData.arkSize, DataMgr.StdArkSize, DataMgr.LargeArkSize);
             this.btnClaim2.interactable = DataMgr.myData.arkSize < DataMgr.StdArkSize || DataMgr.myData.arkSize >= DataMgr.LargeArkSize;
             if (DataMgr.myData.nickname) this.lblNickname.string = DataMgr.myData.nickname;
             if (DataMgr.myData.country) this.country = DataMgr.myData.country;
@@ -56,11 +60,7 @@ export default class HomeUI extends BaseUI {
         }
 
         let self = this;
-        if (this.country && this.sprFlag.spriteFrame.name != this.country) {
-            cc.loader.loadRes("flags/" + this.country, cc.SpriteFrame, function (err, spriteFrame) {
-                self.sprFlag.spriteFrame = spriteFrame;
-            });
-        }
+        if (MainCtrl.Ticks % 50 == 0) FlagMgr.setFlag(this.sprFlag, this.country);
     }
 
     onClaim(event, index: string) {
@@ -91,7 +91,7 @@ export default class HomeUI extends BaseUI {
                 case '2': {
                     if (DataMgr.myData.arkSize < DataMgr.StdArkSize) {
                         //领取，调用合约
-                        BlockchainMgr.Instance.claimArk(0.1);
+                        BlockchainMgr.Instance.claimArk(0.01);
                     } else if (DataMgr.myData.arkSize >= DataMgr.LargeArkSize) {
                         //进入
                         CvsMain.EnterUI(WorldUI);
@@ -138,6 +138,11 @@ export default class HomeUI extends BaseUI {
 
     onBtnClearStorageClick() {
         cc.sys.localStorage.clear();
+        setTimeout(() => location.reload(), 100);
         console.log('成功清除存储');
+    }
+
+    onTestCheat0Click() {
+        DataMgr.myCargoData.forEach(d => d.amount = 1e6);
     }
 }

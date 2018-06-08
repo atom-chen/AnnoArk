@@ -1,6 +1,7 @@
 import { DataMgr, UserData } from "./DataMgr";
 import MainCtrl from "./MainCtrl";
 import WorldUI from "./WorldUI";
+import { FlagMgr } from "./UI/FlagMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -9,6 +10,8 @@ export default class ArkInWorld extends cc.Component {
 
     @property(cc.Sprite)
     sprArk: cc.Sprite = null;
+    @property(cc.Sprite)
+    sprFlag: cc.Sprite = null;
     @property(cc.Label)
     lblName: cc.Label = null;
 
@@ -27,6 +30,8 @@ export default class ArkInWorld extends cc.Component {
         this.sprArk.node.setContentSize(data.arkSize, data.arkSize);
         this.lblName.string = data.nickname;
         this.refreshZoom(zoomScale);
+
+        FlagMgr.setFlag(this.sprFlag, data.country);
     }
 
     refreshZoom(zoomScale: number) {

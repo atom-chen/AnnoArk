@@ -40,7 +40,7 @@ export class DataMgr {
         [4, 35],
     ]
 
-    static getArkSpeedByTech(hasTech?: boolean){
+    static getArkSpeedByTech(hasTech?: boolean) {
         if (hasTech) {
             return 200;
         }
@@ -79,7 +79,7 @@ export class DataMgr {
                 cc.sys.localStorage.setItem('user0Tech', JSON.stringify(DataMgr.myTechData));
                 cc.sys.localStorage.setItem('user0CurrentWorkingTech', JSON.stringify(DataMgr.currentWorkingTech));
                 this.autosaveCountdown += 15;
-                console.log('finish write data',DataMgr.myBuildingData );
+                console.log('finish write data', DataMgr.myData, DataMgr.myBuildingData);
             }
         } catch (error) {
             console.error(error);

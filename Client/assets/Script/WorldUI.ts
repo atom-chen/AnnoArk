@@ -17,7 +17,10 @@ const { ccclass, property } = cc._decorator;
 export default class WorldUI extends BaseUI {
     static Instance: WorldUI;
     onLoad() {
+        console.log('world onl')
         WorldUI.Instance = this;
+        this.node.active = false;
+
         let self = this;
         this.sldZoom.node.getChildByName('Handle').on(cc.Node.EventType.TOUCH_START, function (event) {
             self.pressingZoomSlider = true;
@@ -58,6 +61,8 @@ export default class WorldUI extends BaseUI {
     btnSponsorLink: cc.Button = null;
     @property(cc.Label)
     lblAttackButton: cc.Label = null;
+    @property(cc.Button)
+    btnCollectIsland: cc.Button = null;
 
     @property(cc.Node)
     panPad: cc.Node = null;
@@ -72,15 +77,18 @@ export default class WorldUI extends BaseUI {
 
         if (!DataMgr.myData) return;
 
-        this.refreshData();
-        this.refreshZoom();
+        try {
+            this.refreshData();
+            this.refreshZoom();
+        } catch (e) {
+            console.error(e);
+        }
     }
     onBtnBackClick() {
         CvsMain.EnterUI(HomeUI);
     }
 
     refreshData() {
-
         //myData
         let neededCount = Object.keys(DataMgr.othersData).length + 1;
         for (let i = this.arkContainer.childrenCount; i < neededCount; i++) {
@@ -159,14 +167,17 @@ export default class WorldUI extends BaseUI {
                 this.btnSponsorLink.getComponentInChildren(cc.Label).string =
                     island.data.sponsorName ? island.data.sponsorName : '无赞助商';
                 if (island.data.occupant && island.data.occupant == DataMgr.myData.address) {
+                    this.lblAttackButton.string = '追加\n驻军';
                     const t0 = island.data.lastMineTime;
                     const t1 = Number(new Date());
                     const t = (t1 - t0) / 1000 / 86400;//h
                     const r = island.data.miningRate;
                     const m = island.data.money * (1 - Math.exp(-r * t));
-                    this.lblAttackButton.string = '收取\n' + CurrencyFormatter.formatNAS(m) + 'NAS';
+                    this.btnCollectIsland.node.active = true;
+                    this.btnCollectIsland.getComponentInChildren(cc.Label).string = '收取\n' + CurrencyFormatter.formatNAS(m) + 'NAS';
                 } else {
                     this.lblAttackButton.string = '攻占';
+                    this.btnCollectIsland.node.active = false;
                 }
                 this.grpSelectObject.active = true;
             }
@@ -244,6 +255,8 @@ export default class WorldUI extends BaseUI {
     }
 
     //选中
+    @property(cc.Label)
+    lblAsideSelectFrame: cc.Label = null;
     selectedObjectNode: cc.Node;
     selectArk(arkNode: cc.Node) {
         this.selectedObjectNode = arkNode;
@@ -256,18 +269,21 @@ export default class WorldUI extends BaseUI {
     cancelSelectObject() {
         this.selectedObjectNode = null;
     }
-    onBtnAttackIslandClick() { //有时候是收获哦
+    onBtnAttackIslandClick() {
+        const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
+        if (!island) return;
+        AttackIslandPanel.Instance.node.active = true;
+        AttackIslandPanel.Instance.setAndRefresh(island);
+    }
+    onBtnCollectIslandClick() { //收获
         const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
         if (!island) return;
         if (island.data.occupant == DataMgr.myData.address) {
             BlockchainMgr.Instance.collectIslandMoney(island.data.id);
         }
-        else {
-            AttackIslandPanel.Instance.node.active = true;
-            AttackIslandPanel.Instance.setAndRefresh(island);
-        }
     }
-    onIslandSponsorLinkClick(island: Island) {
+    onIslandSponsorLinkClick() {
+        const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
         if (island.data.sponsorLink) {
             window.open(island.data.sponsorLink);
         }

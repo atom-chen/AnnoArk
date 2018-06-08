@@ -47,6 +47,8 @@ export default class AttackIslandPanel extends cc.Component {
     setAndRefresh(island: Island) {
         this.island = island;
 
+        let data = DataMgr.myData.address == island.data.occupant ? DataMgr.myData : DataMgr.othersData.find(d => d.address == island.data.occupant);
+        this.lblOccupant.string = data ? data.nickname : island.data.occupant;
         this.lblDefTank.string = island.data.tankPower.toFixed();
         this.lblDefChopper.string = island.data.chopperPower.toFixed();
         this.lblDefShip.string = island.data.shipPower.toFixed();

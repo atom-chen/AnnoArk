@@ -132,9 +132,10 @@ export default class MainCtrl extends cc.Component {
                     else if (buildingData.id == 'research239') {
                         //研究院
                         if (DataMgr.currentWorkingTech) {
+                            let buildingInfo = DataMgr.BuildingConfig.find(info => info.id == buildingData.id);
                             let techInfo = DataMgr.TechConfig.find(info => info.id == DataMgr.currentWorkingTech);
                             let techData = DataMgr.myTechData.find(data => data.id == DataMgr.currentWorkingTech);
-                            let delta = Math.min(techInfo.Work - techData.filledWork, buildingData.workers * 1 / 60 * dt);
+                            let delta = Math.min(techInfo.Work - techData.filledWork, buildingData.workers / buildingInfo.MaxHuman * 10 / 60 * dt);
                             techData.filledWork += delta;
                             if (techData.filledWork >= techInfo.Work) {
                                 techData.finished = true;
