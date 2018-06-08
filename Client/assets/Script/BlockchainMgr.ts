@@ -323,7 +323,7 @@ export default class BlockchainMgr extends cc.Component {
                         desc: "test goods"
                     },
                     callback: callbackUrl,
-                    listener: this.attackIsland
+                    listener: this.attackIslandCallback
                 });
             } catch (error) {
                 console.error(error);
@@ -368,7 +368,7 @@ export default class BlockchainMgr extends cc.Component {
                         desc: "test goods"
                     },
                     callback: callbackUrl,
-                    listener: this.attackIsland
+                    listener: this.collectIslandMoneyCallback
                 });
             } catch (error) {
                 console.error(error);

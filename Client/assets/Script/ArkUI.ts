@@ -382,6 +382,7 @@ export default class ArkUI extends BaseUI {
     onBuildingInfoBtnClick() {
         if (this.selectedBuilding) {
             BuildingInfoPanel.Show(this.selectedBuilding.info);
+            this.deselectBuilding();
         }
     }
 
