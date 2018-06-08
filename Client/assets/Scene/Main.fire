@@ -1988,7 +1988,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 179,
+      "width": 192,
       "height": 64
     },
     "_rotationX": 0,
@@ -2023,7 +2023,7 @@
     "_N$file": null,
     "_isSystemFontUsed": true,
     "_spacingX": 0,
-    "_N$string": "大型方舟\n1.0NAS  0.1NAS",
+    "_N$string": "大型方舟\n1.0NAS  0.01NAS",
     "_N$horizontalAlign": 1,
     "_N$verticalAlign": 1,
     "_N$fontFamily": "Arial",

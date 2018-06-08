@@ -32,11 +32,12 @@ export class DataMgr {
 
     static RechargeToArkSize = [
         [0, 9],
-        [0.01, 13],
-        [0.1, 17],
-        [1, 21],
-        [2, 25],
-        [4, 30],
+        [0.001, 13],
+        [0.006, 17],
+        [0.01, 21],
+        [0.1, 25],
+        [1, 30],
+        [4, 35],
     ]
 
     static getArkSpeedByTech(hasTech?: boolean){
