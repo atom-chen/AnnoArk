@@ -13,7 +13,7 @@ declare var Neb: any;
 declare var NebPay: any;
 declare var Account: any;
 declare var HttpRequest: any;
-export const ContractAddress = 'n1nB2VRCu1rs2Hoi4W5D19w9jUkmzLJNi9E';
+export const ContractAddress = 'n21mi6UXsSVNyakSd8zzFiKX3at4uSE6bzF';
 export const EncKey = 37234;
 
 @ccclass
@@ -36,6 +36,14 @@ export default class BlockchainMgr extends cc.Component {
     start() {
         this.checkWalletCountdown = 1;
         this.fetchAllDataCountdown = 1;
+
+        console.log('======test');
+        let data = new UserData();
+        data.nickname = '你好呀';
+        data.speed = 1000;
+        console.log('1', JSON.stringify(data));
+        console.log('2', JSON.stringify(JSON.stringify(data)));
+        console.log('3', JSON.stringify(JSON.stringify(JSON.stringify(data))));
     }
 
     //不断刷新当前钱包地址
@@ -102,7 +110,10 @@ export default class BlockchainMgr extends cc.Component {
                 console.log('Change wallet address:', address);
                 BlockchainMgr.WalletAddress = address;
                 this.fetchAllDataCountdown = 0;
-                if (WorldUI.Instance.node.active || ArkUI.Instance.node.active) CvsMain.EnterUI(HomeUI);
+                if (DataMgr.myData && DataMgr.myData.address != address &&
+                    (WorldUI.Instance.node.active || ArkUI.Instance.node.active)) {
+                    CvsMain.EnterUI(HomeUI);
+                }
             }
         }
     }
@@ -113,13 +124,14 @@ export default class BlockchainMgr extends cc.Component {
         let allArkData = allData.ark_info;
         let allIslandData = allData.island_info;
 
+        DataMgr.othersData = [];
         allArkData.forEach(arkJson => {
             if (arkJson.address == BlockchainMgr.WalletAddress) {
                 if (!DataMgr.myData) {
                     //新前端
                     DataMgr.myData = new UserData();
                 }
-                DataMgr.myData.arkSize = DataMgr.GetArkSizeByRecharge(arkJson.rechargeOnExpand);
+                DataMgr.myData.arkSize = DataMgr.GetArkSizeByRecharge(arkJson.rechargeOnExpand / 1e18);
                 if (!DataMgr.myData.nickname) DataMgr.myData.nickname = arkJson.nickname;
                 DataMgr.myData.address = arkJson.address;
                 if (!DataMgr.myData.country) DataMgr.myData.country = arkJson.country;
@@ -129,17 +141,11 @@ export default class BlockchainMgr extends cc.Component {
                 DataMgr.myData.lastLocationTime = arkJson.lastLocationTime;
                 DataMgr.myData.destinationX = arkJson.destinationX;
                 DataMgr.myData.destinationY = arkJson.destinationY;
+                DataMgr.myData.rechargeOnExpand = arkJson.rechargeOnExpand;
                 DataMgr.writeData();
             } else {
-                let localData = DataMgr.othersData[arkJson.address];
-                if (!localData) {
-                    localData = new UserData();
-                    localData.currentLocation = new cc.Vec2(arkJson.locationX, arkJson.locationY);
-                    DataMgr.othersData[arkJson.address] = localData;
-                }
-                for (let key in arkJson) {
-                    localData[key] = arkJson[key];
-                }
+                DataMgr.othersData[arkJson.address] = arkJson;
+                DataMgr.othersData[arkJson.address].currentLocation = new cc.Vec2(arkJson.locationX, arkJson.locationY);
             }
         });
         allIslandData.forEach(islandJson => {
@@ -207,10 +213,11 @@ export default class BlockchainMgr extends cc.Component {
 
                 var to = ContractAddress;
                 var value = 0;
-                var callFunction = 'udpate_ark';
+                var callFunction = 'update_ark';
                 // let enc = BlockchainMgr.encrypto(score.toString(), EncKey, 25);
-                console.log("调用钱包", deltaData);
-                var callArgs = '["' + JSON.stringify(deltaData) + '"]';
+                console.log("调用钱包update_ark", deltaData);
+                var callArgs = '["'+encodeURIComponent(JSON.stringify(deltaData))+'"]';
+                // var callArgs = JSON.stringify(JSON.stringify(JSON.stringify(deltaData)));
                 serialNumber = nebPay.call(to, value, callFunction, callArgs, {
                     qrcode: {
                         showQRCode: false
@@ -237,6 +244,48 @@ export default class BlockchainMgr extends cc.Component {
         if (resp.toString().substr(0, 5) != 'Error') {
             ToastPanel.Toast('方舟引擎开始预热，预计1分钟内出发\n(交易发送成功，请等待区块链出块)');
             WorldUI.Instance.editSailDestinationMode = false;
+        } else {
+            ToastPanel.Toast('交易失败:' + resp);
+        }
+    }
+
+
+    expandArk(valueNas: number) {
+        if (window['webExtensionWallet']) {
+            try {
+
+                var nebPay = new NebPay();
+                var serialNumber;
+                var callbackUrl = BlockchainMgr.BlockchainUrl;
+                var to = ContractAddress;
+                var value = Math.ceil(valueNas * 1e6) / 1e6;
+                var callFunction = 'recharge_expand';
+                console.log("recharge_expand(valueNas", valueNas, 'value', value);
+                serialNumber = nebPay.call(to, value, callFunction, null, {
+                    qrcode: {
+                        showQRCode: false
+                    },
+                    goods: {
+                        name: "test",
+                        desc: "test goods"
+                    },
+                    callback: callbackUrl,
+                    listener: this.expandArkCallback
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
+                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
+                '取消', null, '安装',
+                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        }
+    }
+    expandArkCallback(resp: string) {
+        console.log("claimArkCallback: ", resp);
+        if (resp.toString().substr(0, 5) != 'Error') {
+            ToastPanel.Toast('交易发送成功，请等待区块链出块');
         } else {
             ToastPanel.Toast('交易失败:' + resp);
         }

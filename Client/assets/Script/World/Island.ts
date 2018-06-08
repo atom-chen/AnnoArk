@@ -18,6 +18,15 @@ export default class Island extends cc.Component {
     lblOccupant: cc.Label = null;
 
     data: IslandData;
+    e;
+    
+    btnNode: cc.Node;
+
+    onLoad() {
+        this.btnNode = new cc.Node();
+        this.btnNode.parent = this.node;
+        this.btnNode.on(cc.Node.EventType.TOUCH_END, this.onClick.bind(this));
+    }
 
     setData(data: IslandData) {
         this.data = data;
@@ -40,10 +49,15 @@ export default class Island extends cc.Component {
         } else {
             this.lblOccupant.string = '无人占领';
         }
+        this.btnNode.setContentSize(this.node.width + 50, this.node.height + 50);
     }
 
     onLinkClick() {
         let link = this.data.sponsorLink;
         if (link && link.length > 0) window.open(link);
+    }
+
+    onClick() {
+        WorldUI.Instance.selectIsland(this.node);
     }
 }

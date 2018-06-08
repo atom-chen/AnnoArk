@@ -6,6 +6,7 @@ import ArkInWorld from "./ArkInWorld";
 import { DataMgr } from "./DataMgr";
 import BlockchainMgr from "./BlockchainMgr";
 import HomeUI from "./HomeUI";
+import Island from "./World/Island";
 
 const { ccclass, property } = cc._decorator;
 
@@ -47,6 +48,13 @@ export default class WorldUI extends BaseUI {
     earth: cc.Node = null;
 
     @property(cc.Node)
+    grpSelectObject: cc.Node = null;
+    @property(cc.Node)
+    selectFrame: cc.Node = null;
+    @property(cc.Button)
+    btnSponsorLink: cc.Button = null;
+
+    @property(cc.Node)
     panPad: cc.Node = null;
     @property(cc.Slider)
     sldZoom: cc.Slider = null;
@@ -54,6 +62,9 @@ export default class WorldUI extends BaseUI {
     zoomScale: number = 0.1;
 
     onEnable() {
+        this.editSailDestinationMode = false;
+        this.selectedObjectNode = null;
+
         if (!DataMgr.myData) return;
 
         this.refreshData();
@@ -84,7 +95,6 @@ export default class WorldUI extends BaseUI {
             const data = DataMgr.othersData[address];
             this.arkContainer.children[i + 1].getComponent(ArkInWorld).
                 setAndRefresh(data, this.zoomScale);
-                console.log('others ark', data);
             i++;
         }
     }
@@ -131,6 +141,27 @@ export default class WorldUI extends BaseUI {
             this.refreshZoom();
         }
 
+        //选中对象模式
+        if (this.selectedObjectNode) {
+            this.selectFrame.active = true;
+            this.selectFrame.position = this.selectedObjectNode.position;
+            this.selectFrame.setContentSize(this.selectedObjectNode.width * 2, this.selectedObjectNode.height * 2);
+            let arkIW = this.selectedObjectNode.getComponent(ArkInWorld);
+            let island = this.selectedObjectNode.getComponent(Island);
+            if (arkIW) {
+
+                this.grpSelectObject.active = false;
+            } else if (island) {
+                this.btnSponsorLink.getComponentInChildren(cc.Label).string =
+                    island.data.sponsorName ? island.data.sponsorName : '无赞助商';
+                this.grpSelectObject.active = true;
+            }
+        } else {
+            this.selectFrame.active = false;
+            this.grpSelectObject.active = false;
+        }
+
+        //选择目的地模式
         if (this.editSailDestinationMode) {
             this.grpSail.active = true;
             this.sailDestinationIndicator.active = this.newDestination != null;
@@ -165,6 +196,13 @@ export default class WorldUI extends BaseUI {
                 this.sailDestinationIndicator.position = this.newDestination.mul(this.zoomScale);
             }
         }
+        if (this.selectedObjectNode) {
+            let curLoc = event.getLocation();
+            let displacement = new cc.Vec2(curLoc.x, curLoc.y).sub(event.getStartLocation());
+            if (displacement.mag() < 20) {
+                this.cancelSelectObject();
+            }
+        }
     }
     onMouseWheel(event: cc.Event.EventMouse) {
         let delta = event.getScrollY();
@@ -183,6 +221,28 @@ export default class WorldUI extends BaseUI {
         if (this.zoomScale < 0.01) this.zoomScale = 0.01;
     }
 
+    //选中
+    selectedObjectNode: cc.Node;
+    selectArk(arkNode: cc.Node) {
+        this.selectedObjectNode = arkNode;
+        this.editSailDestinationMode = false;
+    }
+    selectIsland(islandNode: cc.Node) {
+        this.selectedObjectNode = islandNode;
+        this.editSailDestinationMode = false;
+    }
+    cancelSelectObject() {
+        this.selectedObjectNode = null;
+    }
+    onBtnAttackIslandClick(island: Island) {
+
+    }
+    onIslandSponsorLinkClick(island: Island) {
+        if (island.data.sponsorLink) {
+            window.open(island.data.sponsorLink);
+        }
+    }
+
     //航行
     editSailDestinationMode = false;
     newDestination: cc.Vec2;
@@ -195,6 +255,7 @@ export default class WorldUI extends BaseUI {
     @property(cc.Node)
     btnConfirmSail: cc.Node = null;
     onBtnSailClick() {
+        this.selectedArkNode = null;
         this.editSailDestinationMode = true;
         this.newDestination = null;
     }
@@ -205,19 +266,13 @@ export default class WorldUI extends BaseUI {
     onConfirmSailClick() {
         console.log('调用合约咯');
         const myData = DataMgr.myData;
+        myData.speed = 200;
         let deltaData = {};
-        deltaData['speed'] = 1000;
-        deltaData['locationX'] = myData.locationX;
-        deltaData['locationY'] = myData.locationY;
+        deltaData['speed'] = myData.speed;
+        deltaData['locationX'] = myData.currentLocation.x;
+        deltaData['locationY'] = myData.currentLocation.y;
         deltaData['destinationX'] = this.newDestination.x;
         deltaData['destinationY'] = this.newDestination.y;
         BlockchainMgr.Instance.setSail(deltaData);
-        // DataMgr.myData.speed = 10000;// 100 km/min
-        // DataMgr.myData.locationX = DataMgr.myData.currentLocation.x;
-        // DataMgr.myData.locationY = DataMgr.myData.currentLocation.y;
-        // DataMgr.myData.lastLocationTime = Number(new Date());
-        // DataMgr.myData.destinationX = this.newDestination.x;
-        // DataMgr.myData.destinationY = this.newDestination.y;
-        // setTimeout(() => { this.editSailDestinationMode = false; }, 1000);
     }
 }

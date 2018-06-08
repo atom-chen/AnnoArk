@@ -7,6 +7,8 @@ import Building from "./Building";
 import TechPanel from "./TechPanel";
 import DialogPanel from "./DialogPanel";
 import BuildingInfoPanel from "./UI/BuildingInfoPanel";
+import CurrencyFormatter from "./Utils/CurrencyFormatter";
+import BlockchainMgr from "./BlockchainMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -115,6 +117,8 @@ export default class ArkUI extends BaseUI {
             DataMgr.changed = false;
         }
 
+        this.updateCheckExpand();
+
         this.cargoLabels['population'].string =
             `人口 ${DataMgr.myData.population}/${DataMgr.populationLimit} (闲置 ${DataMgr.idleWorkers}) 增长${DataMgr.populationGrowPerMin.toFixed(0)}/min`;
         for (let i = 0; i < DataMgr.CargoConfig.length; i++) {
@@ -150,10 +154,10 @@ export default class ArkUI extends BaseUI {
             this.blueprint.setContentSize(this.currentHoldingBlueprint.Length * 100, this.currentHoldingBlueprint.Width * 100);
             let ableToBuild = true;
             this.blueprintIndicator.clear();
-                    for (let i = 0; i < this.currentHoldingBlueprint.Length; i++) {
+            for (let i = 0; i < this.currentHoldingBlueprint.Length; i++) {
                 for (let j = 0; j < this.currentHoldingBlueprint.Width; j++) {
                     let cell = this.cells[this.currentBlueprintIJ.i + i][this.currentBlueprintIJ.j + j];
-                    this.blueprintIndicator.fillColor = cell.building ? cc.Color.RED : cc.Color.GREEN;
+                    this.blueprintIndicator.fillColor = cell.building ? cc.Color.RED : cell.isLand ? cc.Color.GREEN : cc.Color.RED;
                     if (cell.building) ableToBuild = false;
                     if (!cell.isLand) ableToBuild = false;
                     this.blueprintIndicator.fillRect(i * 100, j * 100, 100, 100);
@@ -353,10 +357,10 @@ export default class ArkUI extends BaseUI {
             DataMgr.idleWorkers += workers;
             //施放土地
             const info = DataMgr.BuildingConfig.find(i => i.id == building.data.id);
-            console.log('')
-            for (let i = 0; i < info.length; i++) {
-                for (let j = 0; j < info.width; i++) {
-                    console.log('cells', building.data.ij.i + i, building.data.ij.j + j, this.cells)
+            console.log('info.Length', info.Length);
+            for (let i = 0; i < info.Length; i++) {
+                for (let j = 0; j < info.Width; j++) {
+                    console.log('cells', building.data.ij.i + i, building.data.ij.j + j);
                     this.cells[building.data.ij.i + i][building.data.ij.j + j].building = null;
                 }
             }
@@ -366,6 +370,48 @@ export default class ArkUI extends BaseUI {
     onBuildingInfoBtnClick() {
         if (this.selectedBuilding) {
             BuildingInfoPanel.Show(this.selectedBuilding.info);
+        }
+    }
+
+    //扩建方舟
+    onBtnExpandClick() {
+        if (DataMgr.myData.arkSize <= DataMgr.SmallArkSize) {
+            DialogPanel.PopupWith1Button('简陋方舟无法扩建', '您的方舟是简陋方舟，没有扩建功能。\n想要功能完整的方舟？请回到主界面领取标准方舟或大型方舟。需要安装星云钱包哦！', '知道了', null);
+            return;
+        }
+        let nextLevel = null;
+        for (let i = 0; i < DataMgr.RechargeToArkSize.length; i++) {
+            const level = DataMgr.RechargeToArkSize[i];
+            if (DataMgr.myData.rechargeOnExpand / 1e18 < level[0]) {
+                nextLevel = level;
+                break;
+            }
+        }
+        if (nextLevel) {
+            const needMoney = nextLevel[0] - DataMgr.myData.rechargeOnExpand / 1e18;
+            const nextSize = nextLevel[1];
+            DialogPanel.PopupWith2Buttons('扩建方舟', `支付 ${CurrencyFormatter.formatNAS(needMoney)}NAS 扩建方舟到 ${nextSize}×${nextSize} 吗`, '取消', null, '支付', () => {
+                BlockchainMgr.Instance.expandArk(needMoney);
+            })
+
+        } else {
+            DialogPanel.PopupWith1Button('方舟已经最大', '非常感谢您的支持！区块链首款SLG必将越做越好！', '支持！！！', null);
+        }
+    }
+    lastTickArkSize: number;
+    updateCheckExpand() {
+        const nowSize = DataMgr.GetArkSizeByRecharge(DataMgr.myData.rechargeOnExpand / 1e18);
+        if (this.lastTickArkSize != nowSize) {
+            console.log('检测到方舟成功扩建了', this.lastTickArkSize, nowSize);
+            this.lastTickArkSize = nowSize;
+            const myData = DataMgr.myData;
+            myData.arkSize = nowSize;
+            for (let i = -Math.floor(myData.arkSize / 2); i < myData.arkSize / 2; i++) {
+                for (let j = -Math.floor(myData.arkSize / 2); j < myData.arkSize / 2; j++) {
+                    let cell = this.cells[i][j];
+                    cell.isLand = true;
+                }
+            }
         }
     }
 }

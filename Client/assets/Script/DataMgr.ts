@@ -29,15 +29,15 @@ export class DataMgr {
 
     static RechargeToArkSize = [
         [0, 9],
-        [0.04, 12],
-        [0.1, 15],
-        [1, 20],
+        [0.04, 13],
+        [0.1, 17],
+        [1, 21],
         [2, 25],
         [4, 30],
     ]
-    static GetArkSizeByRecharge(rechargeOnExpand: number) {
+    static GetArkSizeByRecharge(rechargeOnExpandInNas: number) {
         for (let i = this.RechargeToArkSize.length - 1; i >= 0; i--) {
-            if (rechargeOnExpand >= this.RechargeToArkSize[i][0]) {
+            if (rechargeOnExpandInNas >= this.RechargeToArkSize[i][0]) {
                 return this.RechargeToArkSize[i][1];
             }
         }
