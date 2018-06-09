@@ -22,7 +22,11 @@ export default class TechButton extends cc.Component {
     setAndRefresh(info: TechInfo, data: TechData) {
         this.info = info;
         this.lblName.string = info.Name;
-        this.lblWork.string = info.Work.toString();
+        if (this.data){
+            this.lblWork.string = this.data.filledWork.toFixed() + ' / ' + info.Work;
+        }else{
+            this.lblWork.string = info.Work.toString();
+        }
         this.data = data;
         this.prgWork.progress = data.filledWork / info.Work;
     }

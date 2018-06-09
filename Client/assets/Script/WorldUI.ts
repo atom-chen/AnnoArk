@@ -11,6 +11,7 @@ import AttackIslandPanel from "./UI/AttackIslandPanel";
 import DialogPanel from "./DialogPanel";
 import CurrencyFormatter from "./Utils/CurrencyFormatter";
 import SponsorIslandPanel from "./UI/SponsorIslandPanel";
+import IslandInfoFrame from "./UI/IslandInfoFrame";
 
 const { ccclass, property } = cc._decorator;
 
@@ -37,6 +38,8 @@ export default class WorldUI extends BaseUI {
         this.panPad.on(cc.Node.EventType.TOUCH_END, this.onPanPadTouchEnd, this);
 
         // cc.systemEvent.on(cc.SystemEvent.EventType.)
+
+        this.initIslandInfoFrames();
     }
 
     @property(cc.Node)
@@ -71,6 +74,7 @@ export default class WorldUI extends BaseUI {
     sldZoom: cc.Slider = null;
     pressingZoomSlider = false;
     zoomScale: number = 0.1;
+
 
     onEnable() {
         this.editSailDestinationMode = false;
@@ -351,5 +355,20 @@ export default class WorldUI extends BaseUI {
         BlockchainMgr.Instance.setSail(deltaData, () => {
             methaneData.amount = Math.max(0, methaneData.amount - needMethane);
         });
+    }
+
+
+    //岛屿初始化
+    @property(cc.Node)
+    islandInfoFrameTemplate: cc.Node = null;
+    initIslandInfoFrames() {
+        this.islandContainer.children.forEach(islandNode => {
+            let frm = cc.instantiate(this.islandInfoFrameTemplate);
+            frm.parent = islandNode;
+            frm.position = this.islandInfoFrameTemplate.position;
+            islandNode.getComponent(Island).infoFrame = frm.getComponent(IslandInfoFrame);
+            frm.active = true;
+        });
+        this.islandInfoFrameTemplate.active = false;
     }
 }

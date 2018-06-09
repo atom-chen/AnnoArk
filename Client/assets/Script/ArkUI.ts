@@ -202,6 +202,7 @@ export default class ArkUI extends BaseUI {
     onBuildBtnClick() {
         this.deselectBuilding();
         BuildPanel.Show();
+        TechPanel.Hide();
     }
     onTechClick() {
         this.deselectBuilding();
@@ -209,6 +210,7 @@ export default class ArkUI extends BaseUI {
             DialogPanel.PopupWith1Button('没有研究院', '建造研究院并指派工作人员进行研究', '确定', null);
         }
         TechPanel.Show();
+        BuildPanel.Hide();
     }
 
     onCenterBtnClick() {

@@ -18,7 +18,9 @@ export default class AsyncLoadSprite extends cc.Component {
             cc.loader.loadRes(self.path, cc.SpriteFrame, function (err, spriteFrame) {
                 if (!err) {
                     let spr = self.node.getComponent(cc.Sprite);
-                    if (spr) spr.spriteFrame = spriteFrame;
+                    if (spr) {
+                        spr.spriteFrame = spriteFrame;
+                    }
                 }
             });
         } catch (error) {

@@ -78,6 +78,9 @@ export default class MainCtrl extends cc.Component {
             DataMgr.allIslandData[islandData.id] = islandData;
             island.setData(islandData);
         });
+        
+        let as = this.node.getComponent(cc.AudioSource);
+        setTimeout(() => { as.play(); }, 1000);
     }
 
 

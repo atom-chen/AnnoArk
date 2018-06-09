@@ -20,6 +20,9 @@ export default class HomeUI extends BaseUI {
         this.node.active = false;
     }
 
+    @property(cc.Label)
+    lblTotalArkCount: cc.Label = null;
+
     @property(cc.Button)
     btnClaim0: cc.Button = null;
     @property(cc.Button)
@@ -60,6 +63,7 @@ export default class HomeUI extends BaseUI {
 
         let self = this;
         if (MainCtrl.Ticks % 50 == 0) FlagMgr.setFlag(this.sprFlag, this.country);
+        if (MainCtrl.Ticks % 100 == 0) this.lblTotalArkCount.string = (Object.keys(DataMgr.othersData).length + 1).toFixed();
     }
 
     onClaim(event, index: string) {
