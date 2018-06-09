@@ -14,7 +14,7 @@ declare var Neb: any;
 declare var NebPay: any;
 declare var Account: any;
 declare var HttpRequest: any;
-export const ContractAddress = 'n1mZu5pFNvvSCha2wHL4xs3X3oDv44WN8km';
+export const ContractAddress = 'n1jiTBXSNGvuYK6vB4JFz95C4bhATQoJwBm';
 export const EncKey = 37234;
 
 @ccclass
@@ -24,8 +24,8 @@ export default class BlockchainMgr extends cc.Component {
         BlockchainMgr.Instance = this;
     }
 
-    // static BlockchainUrl: string = 'https://mainnet.nebulas.io';
-    static BlockchainUrl: string = 'https://testnet.nebulas.io';
+    static BlockchainUrl: string = 'https://mainnet.nebulas.io';
+    // static BlockchainUrl: string = 'https://testnet.nebulas.io';
     static WalletAddress: string;
 
     static CheckWalletInterval = 10;
@@ -197,7 +197,10 @@ export default class BlockchainMgr extends cc.Component {
     claimArkCallback(resp) {
         console.log("claimArkCallback: ", resp);
         if (resp.toString().substr(0, 5) != 'Error') {
-            ToastPanel.Toast('交易发送成功，请等待区块链出块');
+            DialogPanel.PopupWith2Buttons('方舟正在组装，请等候30秒',
+                '区块链交易已发送，等待出块\nTxHash:' + resp.txhash, '查看交易', () => {
+                    window.open('https://explorer.nebulas.io/#/tx/' + resp.txhash);
+                }, '确定', null);
         } else {
             ToastPanel.Toast('交易失败:' + resp);
         }

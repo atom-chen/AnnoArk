@@ -12,6 +12,7 @@ import DialogPanel from "./DialogPanel";
 import CurrencyFormatter from "./Utils/CurrencyFormatter";
 import SponsorIslandPanel from "./UI/SponsorIslandPanel";
 import IslandInfoFrame from "./UI/IslandInfoFrame";
+import ToastPanel from "./UI/ToastPanel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -327,6 +328,10 @@ export default class WorldUI extends BaseUI {
         this.newDestination = null;
     }
     onConfirmSailClick() {
+        if (!this.newDestination) {
+            ToastPanel.Toast('请先点击地图空白位置，选择目的地，再点√');
+            return;
+        }
         const myData = DataMgr.myData;
         if (myData.arkSize <= DataMgr.SmallArkSize) {
             DialogPanel.PopupWith1Button('简陋方舟无法航行', '您的方舟是简陋方舟，没有扩建功能，请原地呆着吧。\n想要功能完整的方舟？请回到主界面领取标准方舟或大型方舟。需要安装星云钱包哦！', '知道了', null);
