@@ -16,7 +16,6 @@ const { ccclass, property } = cc._decorator;
 export default class ArkUI extends BaseUI {
     static Instance: ArkUI;
     onLoad() {
-        console.log('ark onl')
         ArkUI.Instance = this;
         this.node.active = false;
 

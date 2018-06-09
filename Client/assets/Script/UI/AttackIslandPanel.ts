@@ -41,6 +41,8 @@ export default class AttackIslandPanel extends cc.Component {
     lblDistance: cc.Label = null;
     @property(cc.Label)
     lblMethane: cc.Label = null;
+    @property(cc.Label)
+    lblConfirmButton: cc.Label = null;
 
     tankMax = 0;
     chopperMax = 0;
@@ -51,8 +53,10 @@ export default class AttackIslandPanel extends cc.Component {
     setAndRefresh(island: Island) {
         this.island = island;
 
-        let data = DataMgr.myData.address == island.data.occupant ? DataMgr.myData : DataMgr.othersData.find(d => d.address == island.data.occupant);
+        let amIOccupant = DataMgr.myData.address == island.data.occupant;
+        let data = amIOccupant ? DataMgr.myData : DataMgr.othersData.find(d => d.address == island.data.occupant);
         this.lblOccupant.string = data ? data.nickname : island.data.occupant;
+        this.lblConfirmButton.string = amIOccupant ? '追加' : '进攻';
 
         let powerAttenuRate = 0.05;
         let hoursDelta = (Number(new Date()) - island.data.lastBattleTime) / (1000 * 3600);
@@ -63,6 +67,9 @@ export default class AttackIslandPanel extends cc.Component {
         this.SldAtkTank.progress = 0;
         this.SldAtkChopper.progress = 0;
         this.SldAtkShip.progress = 0;
+        this.onSliderChange(null, 'Tank');
+        this.onSliderChange(null, 'Chopper');
+        this.onSliderChange(null, 'Ship');
         this.refreshMethaneCost();
     }
 
@@ -139,7 +146,14 @@ export default class AttackIslandPanel extends cc.Component {
             const chopper = Math.round(this.SldAtkChopper.progress * this.chopperMax);
             const ship = Math.round(this.SldAtkShip.progress * this.shipMax);
             BlockchainMgr.Instance.attackIsland(this.island.data.id, tank, chopper, ship, () => {
-                methaneData.amount = Math.max(0, methaneData.amount - costMethane);
+                try {
+                    methaneData.amount = Math.max(0, methaneData.amount - costMethane);
+                    DataMgr.myCargoData.find(d => d.id == 'tank23532').amount -= tank;
+                    DataMgr.myCargoData.find(d => d.id == 'chopper424').amount -= chopper;
+                    DataMgr.myCargoData.find(d => d.id == 'ship40342').amount -= ship;
+                } catch (error) {
+
+                }
             });
         } else {
             DialogPanel.PopupWith1Button('燃料不足', '将方舟靠近目标，减少派兵数量，或者生产更多甲烷吧', '确定', null);

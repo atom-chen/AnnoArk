@@ -19,6 +19,9 @@ export class FlagMgr {
     }
 
     static flagNames = [
-        "at", "au", "be", "bg", "br", "ch", "cl", "cn", "co", "cr", "cs", "de", "dk", "eng", "es", "fr", "gh", "hr", "ir", "is", "it", "jp", "kp", "kr", "ma", "mx", "ng", "nir", "nl", "pa", "pe", "pl", "pt", "py", "ru", "sa", "sco", "se", "sk", "sn", "tn", "us", "uy", "wal"
+        "cn", "us", "jp", "kr", "eng", "ru", "de", "at", "au", "be", "bg", "br", "ch", "cl", "co", "cr", "cs",
+        "dk", "es", "fr", "gh", "hr", "ir", "is", "it",
+        "kp", "ma", "mx", "ng", "nir", "nl", "pa", "pe", "pl",
+        "pt", "py", "sa", "sco", "se", "sk", "sn", "tn", "uy", "wal"
     ]
 }

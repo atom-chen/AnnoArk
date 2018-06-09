@@ -19,7 +19,6 @@ const { ccclass, property } = cc._decorator;
 export default class WorldUI extends BaseUI {
     static Instance: WorldUI;
     onLoad() {
-        console.log('world onl')
         WorldUI.Instance = this;
         this.node.active = false;
 
@@ -175,9 +174,9 @@ export default class WorldUI extends BaseUI {
                     this.lblAttackButton.string = '追加\n驻军';
                     const t0 = island.data.lastMineTime;
                     const t1 = Number(new Date());
-                    const t = (t1 - t0) / 1000 / 86400;//h
+                    const t = (t1 - t0) / (1000 * 3600);//h
                     const r = island.data.miningRate;
-                    const m = island.data.money * (1 - Math.exp(-r * t));
+                    const m = island.data.money * (1 - Math.exp(-r * t)) / 1e18;
                     this.btnCollectIsland.node.active = true;
                     this.btnCollectIsland.getComponentInChildren(cc.Label).string = '收取\n' + CurrencyFormatter.formatNAS(m) + 'NAS';
                 } else {

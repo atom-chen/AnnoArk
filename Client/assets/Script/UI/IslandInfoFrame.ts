@@ -18,8 +18,8 @@ export default class IslandInfoFrame extends cc.Component {
 
     refresh(data: IslandData) {
         if (!data) return;
-        this.lblName.string = data.sponsorName + ' 资源岛';
-        let curMoney = data.money * (1 - Math.exp(-data.miningRate * (Number(new Date()) - data.lastMineTime) / (1000 * 3600)));
+        this.lblName.string = data.sponsorName;
+        let curMoney = DataMgr.calcCurrentMoneyInIsland(data);
         this.lblLeftMoney.string = CurrencyFormatter.formatNAS(curMoney / 1e18) + 'NAS';
         let speed = data.miningRate * curMoney / 1e18;
         this.lblMiningSpeed.string = CurrencyFormatter.formatNAS(speed) + 'NAS/小时';

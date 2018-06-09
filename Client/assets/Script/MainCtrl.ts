@@ -80,7 +80,13 @@ export default class MainCtrl extends cc.Component {
         });
         
         let as = this.node.getComponent(cc.AudioSource);
-        setTimeout(() => { as.play(); }, 1000);
+        setTimeout(() => {
+            // cc.loader.loadRes('audio/bgm', cc.AudioClip, (err, clip)=>{
+            //     as.clip = clip;
+            //     as.play(); 
+            // });
+            as.play(); 
+        }, 2000);
     }
 
 

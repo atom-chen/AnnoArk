@@ -1,6 +1,7 @@
 import BlockchainMgr from "../BlockchainMgr";
 import Island from "../World/Island";
 import CurrencyFormatter from "../Utils/CurrencyFormatter";
+import { DataMgr } from "../DataMgr";
 
 const { ccclass, property } = cc._decorator;
 
@@ -24,7 +25,7 @@ export default class SponsorIslandPanel extends cc.Component {
         if (island.data.sponsor == BlockchainMgr.WalletAddress) {
             this.lblCurMoney.string = '0';
         } else {
-            let curMoney = this.island.data.money * (1 - Math.exp(-this.island.data.miningRate * (Number(new Date()) - this.island.data.lastMineTime) / (1000 * 3600)));
+            let curMoney = DataMgr.calcCurrentMoneyInIsland(island.data);
             this.lblCurMoney.string = CurrencyFormatter.formatNAS(curMoney * 1.101 / 1e18);
         }
     }

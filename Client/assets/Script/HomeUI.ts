@@ -15,7 +15,6 @@ const { ccclass, property } = cc._decorator;
 export default class HomeUI extends BaseUI {
     static Instance: HomeUI;
     onLoad() {
-        console.log('home onl')
         HomeUI.Instance = this;
         this.node.active = false;
     }
@@ -69,7 +68,8 @@ export default class HomeUI extends BaseUI {
     onClaim(event, index: string) {
         //检查昵称、国家
         if (!this.lblNickname.string || !this.country) {
-            DialogPanel.PopupWith1Button('请设置国旗和昵称', '找不到自己的国家？可以用联合国的旗帜哦。', '确定', null);
+            EditNicknamePanel.Instance.node.active = true;
+            ToastPanel.Toast('请先设置国旗和昵称');
             return;
         }
         if (DataMgr.myData) {

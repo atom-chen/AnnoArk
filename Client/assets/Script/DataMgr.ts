@@ -28,7 +28,7 @@ export class DataMgr {
     static StdArkSize = 9;
     static LargeArkSize = 21;
 
-    static MethaneCostPerKmPerSize = 0.01;
+    static MethaneCostPerKmPerSize = 0.005;
 
     static RechargeToArkSize = [
         [0, 9],
@@ -55,7 +55,13 @@ export class DataMgr {
         }
     }
     static getMethaneCostOfAttack(distance: number, tankPower, chopperPower, shipPower) {
-        return 0.001 * distance * (tankPower + chopperPower + shipPower);
+        return 0.01 * distance * (tankPower + chopperPower + shipPower);
+    }
+
+    static calcCurrentMoneyInIsland(data: IslandData): number {
+        const isMining = data.occupant && data.occupant.length > 0;
+        let curMoney = data.money * (isMining ? Math.exp(-data.miningRate * (Number(new Date()) - data.lastMineTime) / (1000 * 3600)) : 1);
+        return curMoney;
     }
 
     static readData() {
