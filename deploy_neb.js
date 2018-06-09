@@ -24,6 +24,11 @@ var dist = path.join(root,'dist');
 if(!fs.existsSync(dist)){
 	fs.mkdirSync(dist);
 }
+// mkdir deploy_cache
+var deploy_cache=path.join('','deploy_cache');
+if(!fs.existsSync(deploy_cache)){
+    fs.mkdirSync(deploy_cache);
+}
 
 var downloadNotExist = function (url, p) {
 	if (!fs.existsSync(p)) {
@@ -45,8 +50,14 @@ var downloadNotExist = function (url, p) {
 }
 var nebulas = path.join(dist,'nebulas.min.js');
 var nebPay = path.join(dist,'nebPay.min.js');
-downloadNotExist('https://raw.githubusercontent.com/aijingsun6/cocos_deploy/master/neb/nebulas.min.js',nebulas);
-downloadNotExist('https://raw.githubusercontent.com/aijingsun6/cocos_deploy/master/neb/nebPay.min.js',nebPay);
+var nebulasCache = path.join(deploy_cache,'nebulas.min.js');
+var nebPayCache = path.join(deploy_cache,'nebPay.min.js');
+
+downloadNotExist('https://raw.githubusercontent.com/aijingsun6/cocos_deploy/master/neb/nebulas.min.js',nebulasCache);
+fs.copyFileSync(nebulasCache, nebulas);
+downloadNotExist('https://raw.githubusercontent.com/aijingsun6/cocos_deploy/master/neb/nebPay.min.js',nebPayCache);
+fs.copyFileSync(nebPayCache, nebPay);
+
 var data = fs.readFileSync(indexPath,'utf-8');
 // console.log(data);
 var str = '<script type="text/javascript" src="./dist/nebulas.min.js"></script>'
