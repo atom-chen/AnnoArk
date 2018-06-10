@@ -28,6 +28,7 @@ export default class Island extends cc.Component {
             this.btnNode.setContentSize(this.node.width + 5, this.node.height + 5);
         }
         this.node.position = this.data.location.mul(WorldUI.Instance.zoomScale);
+        this.infoFrame.refreshAsZoomScale();
     }
 
     onLinkClick() {

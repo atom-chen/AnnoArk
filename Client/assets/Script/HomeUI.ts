@@ -36,10 +36,14 @@ export default class HomeUI extends BaseUI {
     country: string;
 
     @property(cc.Label)
+    lblMusicButton: cc.Label = null;
+
+    @property(cc.Label)
     lblBlockchainAddress: cc.Label = null;
 
     start() {
         ToastPanel.Toast('正在读取您的钱包信息，如果您在用钱包玩游戏，请稍候');
+        this.lblMusicButton.string = MainCtrl.Instance.getComponent(cc.AudioSource).volume > 0 ? '音乐：开' : '音乐：关';
     }
 
     update() {
@@ -63,6 +67,7 @@ export default class HomeUI extends BaseUI {
         let self = this;
         if (MainCtrl.Ticks % 50 == 0) FlagMgr.setFlag(this.sprFlag, this.country);
         if (MainCtrl.Ticks % 100 == 0) this.lblTotalArkCount.string = (Object.keys(DataMgr.othersData).length + 1).toFixed();
+
     }
 
     onClaim(event, index: string) {
@@ -143,6 +148,12 @@ export default class HomeUI extends BaseUI {
         cc.sys.localStorage.clear();
         setTimeout(() => location.reload(), 100);
         console.log('成功清除存储');
+    }
+
+    onBtnSwitchMusicClick() {
+        const as = MainCtrl.Instance.getComponent(cc.AudioSource);
+        as.volume = as.volume > 0 ? 0 : 0.25;
+        this.lblMusicButton.string = as.volume > 0 ? '音乐：开' : '音乐：关';
     }
 
     onTestCheat0Click() {

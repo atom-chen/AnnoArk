@@ -274,16 +274,16 @@ export default class WorldUI extends BaseUI {
     lblAsideSelectFrame: cc.Label = null;
     selectedObjectNode: cc.Node;
     selectArk(arkNode: cc.Node) {
+        if (this.editSailDestinationMode) return;
         this.selectedObjectNode = arkNode;
-        this.editSailDestinationMode = false;
     }
     selectSpecialArk(arkNode: cc.Node) {
+        if (this.editSailDestinationMode) return;
         this.selectedObjectNode = arkNode;
-        this.editSailDestinationMode = false;
     }
     selectIsland(islandNode: cc.Node) {
+        if (this.editSailDestinationMode) return;
         this.selectedObjectNode = islandNode;
-        this.editSailDestinationMode = false;
     }
     cancelSelectObject() {
         this.selectedObjectNode = null;

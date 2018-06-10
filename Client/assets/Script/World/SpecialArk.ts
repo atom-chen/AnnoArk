@@ -16,6 +16,8 @@ export class SpecialArk extends cc.Component {
     strTooFar: string = '';
     @property(String)
     strInfo: string = '';
+    @property(cc.Node)
+    grpInfo: cc.Node = null;
 
     location: cc.Vec2;
 
@@ -29,6 +31,7 @@ export class SpecialArk extends cc.Component {
 
     refreshZoom(zoomScale: number) {
         this.node.position = this.location.mul(zoomScale);
+        this.grpInfo.opacity = WorldUI.Instance.zoomScale > 0.08 || WorldUI.Instance.selectedObjectNode == this.node.parent ? 255 : 0;
     }
 
     update(dt: number) {

@@ -14,6 +14,8 @@ export default class ArkInWorld extends cc.Component {
     sprFlag: cc.Sprite = null;
     @property(cc.Label)
     lblName: cc.Label = null;
+    @property(cc.Node)
+    grpInfo: cc.Node = null;
 
     data: UserData;
 
@@ -36,7 +38,7 @@ export default class ArkInWorld extends cc.Component {
 
     refreshZoom(zoomScale: number) {
         this.node.position = new cc.Vec2(this.data.currentLocation.x, this.data.currentLocation.y).mul(zoomScale);
-        // this.btnNode.setContentSize(this.node.width + 50, this.node.height + 50);
+        this.grpInfo.opacity = WorldUI.Instance.zoomScale > 0.08 || WorldUI.Instance.selectedObjectNode == this.node.parent || this.data == DataMgr.myData ? 255 : 0;
     }
 
     update(dt: number) {

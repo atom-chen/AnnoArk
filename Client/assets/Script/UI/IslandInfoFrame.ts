@@ -1,5 +1,6 @@
 import { IslandData, DataMgr } from "../DataMgr";
 import CurrencyFormatter from "../Utils/CurrencyFormatter";
+import WorldUI from "../WorldUI";
 
 const { ccclass, property } = cc._decorator;
 
@@ -15,6 +16,10 @@ export default class IslandInfoFrame extends cc.Component {
     @property(cc.Label)
     lblOccupant: cc.Label = null;
 
+    @property(cc.Node)
+    grpTitle: cc.Node = null;
+    @property(cc.Node)
+    grpMore: cc.Node = null;
 
     refresh(data: IslandData) {
         if (!data) return;
@@ -29,5 +34,10 @@ export default class IslandInfoFrame extends cc.Component {
         } else {
             this.lblOccupant.string = '(无)';
         }
+    }
+
+    refreshAsZoomScale() {
+        this.grpMore.opacity = WorldUI.Instance.zoomScale > 0.18 || WorldUI.Instance.selectedObjectNode == this.node.parent ? 255 : 0;
+        this.grpTitle.opacity = WorldUI.Instance.zoomScale > 0.08 || WorldUI.Instance.selectedObjectNode == this.node.parent ? 255 : 0;
     }
 }
