@@ -46,6 +46,7 @@ export default class ArkUI extends BaseUI {
         this.workshopTemplate.active = false;
         this.roadTemplate.active = false;
         this.houseTemplate.active = false;
+        this.launchingsiloTemplate.active = false;
 
         let labelNode = cc.instantiate(this.cargoLabelTemplate);
         labelNode.parent = this.cargoLabelContainer;
@@ -251,6 +252,8 @@ export default class ArkUI extends BaseUI {
     @property(cc.Node)
     roadTemplate: cc.Node = null;
     @property(cc.Node)
+    launchingsiloTemplate: cc.Node = null;
+    @property(cc.Node)
     buildingContainer: cc.Node = null;
     @property(cc.Node)
     blueprint: cc.Node = null;
@@ -345,7 +348,7 @@ export default class ArkUI extends BaseUI {
     @property(cc.Node)
     grpBuildingInfo: cc.Node = null;
     selectBuilding(building: Building) {
-        console.log('选中建筑')
+        console.log('选中建筑', building);
         this.selectedBuilding = building;
     }
     deselectBuilding() {
