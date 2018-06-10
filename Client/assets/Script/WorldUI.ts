@@ -13,6 +13,7 @@ import CurrencyFormatter from "./Utils/CurrencyFormatter";
 import SponsorIslandPanel from "./UI/SponsorIslandPanel";
 import IslandInfoFrame from "./UI/IslandInfoFrame";
 import ToastPanel from "./UI/ToastPanel";
+import { SpecialArk } from "./World/SpecialArk";
 
 const { ccclass, property } = cc._decorator;
 
@@ -59,6 +60,8 @@ export default class WorldUI extends BaseUI {
 
     @property(cc.Node)
     grpSelectObject: cc.Node = null;
+    @property(cc.Node)
+    grpSelectSpeArk: cc.Node = null;
     @property(cc.Node)
     selectFrame: cc.Node = null;
     @property(cc.Button)
@@ -165,8 +168,10 @@ export default class WorldUI extends BaseUI {
             this.selectFrame.position = this.selectedObjectNode.position;
             this.selectFrame.setContentSize(this.selectedObjectNode.width * 2, this.selectedObjectNode.height * 2);
             let arkIW = this.selectedObjectNode.getComponent(ArkInWorld);
+            let speArk = this.selectedObjectNode.getComponent(SpecialArk);
             let island = this.selectedObjectNode.getComponent(Island);
             if (arkIW) {
+                this.grpSelectSpeArk.active = false;
                 this.grpSelectObject.active = false;
             } else if (island) {
                 this.btnSponsorLink.getComponentInChildren(cc.Label).string =
@@ -184,9 +189,14 @@ export default class WorldUI extends BaseUI {
                     this.lblAttackButton.string = '攻占';
                     this.btnCollectIsland.node.active = false;
                 }
+                this.grpSelectSpeArk.active = false;
                 this.grpSelectObject.active = true;
+            } else if (speArk) {
+                this.grpSelectObject.active = false;
+                this.grpSelectSpeArk.active = true;
             }
         } else {
+            this.grpSelectSpeArk.active = false;
             this.selectFrame.active = false;
             this.grpSelectObject.active = false;
         }
@@ -267,12 +277,24 @@ export default class WorldUI extends BaseUI {
         this.selectedObjectNode = arkNode;
         this.editSailDestinationMode = false;
     }
+    selectSpecialArk(arkNode: cc.Node) {
+        this.selectedObjectNode = arkNode;
+        this.editSailDestinationMode = false;
+    }
     selectIsland(islandNode: cc.Node) {
         this.selectedObjectNode = islandNode;
         this.editSailDestinationMode = false;
     }
     cancelSelectObject() {
         this.selectedObjectNode = null;
+    }
+    onSelectObjectInfoClick() {
+        let speArk = this.selectedObjectNode.getComponent(SpecialArk);
+        if (speArk) {
+            let pos = new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y);
+            let dist = pos.sub(speArk.node.position).mag();
+            speArk.showInfo(dist);
+        }
     }
     onBtnAttackIslandClick() {
         const island = this.selectedObjectNode ? this.selectedObjectNode.getComponent(Island) : null;
@@ -349,6 +371,10 @@ export default class WorldUI extends BaseUI {
         const arkSpeedTechData = DataMgr.myTechData.find(d => d.id == 'arkspeed1011');
         myData.speed = DataMgr.getArkSpeedByTech(arkSpeedTechData ? arkSpeedTechData.finished : false);
         let deltaData = {};
+        deltaData['nickname'] = myData.nickname;
+        deltaData['country'] = myData.country;
+        deltaData['arkSize'] = myData.arkSize;
+        deltaData['population'] = myData.population;
         deltaData['speed'] = myData.speed;
         deltaData['locationX'] = myData.currentLocation.x;
         deltaData['locationY'] = myData.currentLocation.y;

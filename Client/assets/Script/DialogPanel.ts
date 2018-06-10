@@ -23,6 +23,9 @@ export default class DialogPanel extends cc.Component {
     func0: () => any;
     func1: () => any;
 
+    static PopupWithOKButton(title: string, text: string) {
+        DialogPanel.PopupWith1Button(title, text, '确定', null);
+    }
     static PopupWith1Button(title: string, text: string, btn0String: string, button0Callback: () => any) {
         this.Instance.show();
         this.Instance.lblTitle.string = title;
