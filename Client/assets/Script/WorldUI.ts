@@ -292,7 +292,7 @@ export default class WorldUI extends BaseUI {
         let speArk = this.selectedObjectNode.getComponent(SpecialArk);
         if (speArk) {
             let pos = new cc.Vec2(DataMgr.myData.currentLocation.x, DataMgr.myData.currentLocation.y);
-            let dist = pos.sub(speArk.node.position).mag();
+            let dist = pos.sub(speArk.location).mag();
             speArk.showInfo(dist);
         }
     }
