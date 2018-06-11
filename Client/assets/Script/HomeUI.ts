@@ -38,8 +38,8 @@ export default class HomeUI extends BaseUI {
     @property(cc.Label)
     lblMusicButton: cc.Label = null;
 
-    @property(cc.Label)
-    lblBlockchainAddress: cc.Label = null;
+    @property(cc.EditBox)
+    edtBlockchainAddress: cc.Label = null;
 
     start() {
         ToastPanel.Toast('正在读取您的钱包信息，如果您在用钱包玩游戏，请稍候');
@@ -47,8 +47,6 @@ export default class HomeUI extends BaseUI {
     }
 
     update() {
-        this.lblBlockchainAddress.string = BlockchainMgr.WalletAddress ? BlockchainMgr.WalletAddress : '未获取到钱包地址';
-
         if (DataMgr.myData) {
             this.btnClaim0.getComponentInChildren(cc.Label).string = DataMgr.myData.arkSize < DataMgr.StdArkSize ? '进入' : '无法领取';
             this.btnClaim1.getComponentInChildren(cc.Label).string = DataMgr.myData.arkSize < DataMgr.StdArkSize ? '领取' : DataMgr.myData.arkSize < DataMgr.LargeArkSize ? '进入' : '无法领取';
@@ -134,6 +132,15 @@ export default class HomeUI extends BaseUI {
 
     onBtnSponsorClick() {
         // CvsMain.EnterUI(WorldUI);
+    }
+
+    onInputAddress(edt) {
+        console.log('手动输入地址', edt.string);
+        const address = edt.string;
+        if (address) {
+            BlockchainMgr.WalletAddress = address;
+            BlockchainMgr.Instance.fetchAllDataCountdown = 1;
+        }
     }
 
     onAddressClick() {

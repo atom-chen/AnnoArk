@@ -102,6 +102,7 @@ export default class BlockchainMgr extends cc.Component {
             if (BlockchainMgr.WalletAddress != address) {
                 console.log('Change wallet address:', address);
                 BlockchainMgr.WalletAddress = address;
+                HomeUI.Instance.edtBlockchainAddress.string = BlockchainMgr.WalletAddress ? BlockchainMgr.WalletAddress : '';
                 this.fetchAllDataCountdown = 0;
                 try {
                     if (DataMgr.myData && DataMgr.myData.address != address &&
@@ -161,38 +162,37 @@ export default class BlockchainMgr extends cc.Component {
     }
 
     claimArk(value: number) {
-        if (window['webExtensionWallet']) {
-            try {
-                const nickname = HomeUI.Instance.lblNickname.string;
-                const country = HomeUI.Instance.country;
+        try {
+            const nickname = HomeUI.Instance.lblNickname.string;
+            const country = HomeUI.Instance.country;
 
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
-                var to = ContractAddress;
-                var callFunction = 'claim_ark';
-                console.log("调用钱包claim_ark(", nickname, );
-                var callArgs = '["' + nickname + '","' + country + '"]';
-                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.claimArkCallback
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
+            var to = ContractAddress;
+            var callFunction = 'claim_ark';
+            console.log("调用钱包claim_ark(", nickname, );
+            var callArgs = '["' + nickname + '","' + country + '"]';
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.claimArkCallback
+            });
+        } catch (error) {
+            console.error(error);
         }
+        // } else {
+        //     DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
+        //         '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
+        //         '取消', null, '安装',
+        //         () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        // }
     }
     claimArkCallback(resp) {
         console.log("claimArkCallback: ", resp);
@@ -207,37 +207,30 @@ export default class BlockchainMgr extends cc.Component {
     }
 
     setSail(deltaData, succCallback: () => void) {
-        if (window['webExtensionWallet']) {
-            try {
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
+        try {
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
 
-                var to = ContractAddress;
-                var value = 0;
-                var callFunction = 'update_ark';
-                // let enc = BlockchainMgr.encrypto(score.toString(), EncKey, 25);
-                console.log("调用钱包update_ark", deltaData);
-                var callArgs = '["' + encodeURIComponent(JSON.stringify(deltaData)) + '"]';
-                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.setSailCallback(succCallback)
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+            var to = ContractAddress;
+            var value = 0;
+            var callFunction = 'update_ark';
+            // let enc = BlockchainMgr.encrypto(score.toString(), EncKey, 25);
+            console.log("调用钱包update_ark", deltaData);
+            var callArgs = '["' + encodeURIComponent(JSON.stringify(deltaData)) + '"]';
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.setSailCallback(succCallback)
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
     setSailCallback(succCallback: () => void): (object) => void {
@@ -259,35 +252,28 @@ export default class BlockchainMgr extends cc.Component {
 
 
     expandArk(valueNas: number) {
-        if (window['webExtensionWallet']) {
-            try {
+        try {
 
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
-                var to = ContractAddress;
-                var value = Math.ceil(valueNas * 1e6) / 1e6;
-                var callFunction = 'recharge_expand';
-                console.log("调用钱包recharge_expand(valueNas", valueNas, 'value', value);
-                serialNumber = nebPay.call(to, value, callFunction, null, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.expandArkCallback
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
+            var to = ContractAddress;
+            var value = Math.ceil(valueNas * 1e6) / 1e6;
+            var callFunction = 'recharge_expand';
+            console.log("调用钱包recharge_expand(valueNas", valueNas, 'value', value);
+            serialNumber = nebPay.call(to, value, callFunction, null, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.expandArkCallback
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
     expandArkCallback(resp) {
@@ -305,35 +291,28 @@ export default class BlockchainMgr extends cc.Component {
 
 
     attackIsland(islandId: number, tank, chopper, ship, succCallback: () => void) {
-        if (window['webExtensionWallet']) {
-            try {
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
-                var to = ContractAddress;
-                var value = 0
-                var callFunction = 'attack_island';
-                console.log("调用钱包attack_island(", islandId, tank, chopper, ship);
-                var callArgs = JSON.stringify([islandId, tank, chopper, ship]);
-                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.attackIslandCallback(succCallback)
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        try {
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
+            var to = ContractAddress;
+            var value = 0
+            var callFunction = 'attack_island';
+            console.log("调用钱包attack_island(", islandId, tank, chopper, ship);
+            var callArgs = JSON.stringify([islandId, tank, chopper, ship]);
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.attackIslandCallback(succCallback)
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
     attackIslandCallback(succCallback: () => void): (object) => void {
@@ -355,35 +334,28 @@ export default class BlockchainMgr extends cc.Component {
     }
 
     collectIslandMoney(islandId: number) {
-        if (window['webExtensionWallet']) {
-            try {
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
-                var to = ContractAddress;
-                var value = 0
-                var callFunction = 'collect_island_money';
-                console.log("调用钱包collect_island_money(", islandId, );
-                var callArgs = JSON.stringify([islandId]);
-                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.collectIslandMoneyCallback
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        try {
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
+            var to = ContractAddress;
+            var value = 0
+            var callFunction = 'collect_island_money';
+            console.log("调用钱包collect_island_money(", islandId, );
+            var callArgs = JSON.stringify([islandId]);
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.collectIslandMoneyCallback
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
     collectIslandMoneyCallback(resp) {
@@ -400,35 +372,28 @@ export default class BlockchainMgr extends cc.Component {
     }
 
     sponsor(islandId, sponsorName, link, valueNas: number) {
-        if (window['webExtensionWallet']) {
-            try {
-                var nebPay = new NebPay();
-                var serialNumber;
-                var callbackUrl = BlockchainMgr.BlockchainUrl;
-                var to = ContractAddress;
-                var value = Math.ceil(valueNas * 1e6) / 1e6;
-                var callFunction = 'sponsor';
-                console.log("调用钱包sponsor(", islandId, sponsorName, link, valueNas);
-                var callArgs = JSON.stringify([islandId, sponsorName, link]);
-                serialNumber = nebPay.call(to, value, callFunction, callArgs, {
-                    qrcode: {
-                        showQRCode: false
-                    },
-                    goods: {
-                        name: "test",
-                        desc: "test goods"
-                    },
-                    callback: callbackUrl,
-                    listener: this.sponsorCallback
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        } else {
-            DialogPanel.PopupWith2Buttons('您没有安装星云钱包',
-                '安装星云钱包，方可使用区块链功能，与全世界玩家互动。',
-                '取消', null, '安装',
-                () => window.open("https://github.com/ChengOrangeJu/WebExtensionWallet"));
+        try {
+            var nebPay = new NebPay();
+            var serialNumber;
+            var callbackUrl = BlockchainMgr.BlockchainUrl;
+            var to = ContractAddress;
+            var value = Math.ceil(valueNas * 1e6) / 1e6;
+            var callFunction = 'sponsor';
+            console.log("调用钱包sponsor(", islandId, sponsorName, link, valueNas);
+            var callArgs = JSON.stringify([islandId, sponsorName, link]);
+            serialNumber = nebPay.call(to, value, callFunction, callArgs, {
+                qrcode: {
+                    showQRCode: false
+                },
+                goods: {
+                    name: "test",
+                    desc: "test goods"
+                },
+                callback: callbackUrl,
+                listener: this.sponsorCallback
+            });
+        } catch (error) {
+            console.error(error);
         }
     }
     sponsorCallback(resp) {
