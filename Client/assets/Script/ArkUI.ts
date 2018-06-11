@@ -214,10 +214,7 @@ export default class ArkUI extends BaseUI {
     }
 
     onCenterBtnClick() {
-        let data = DataMgr.myData;
-        let rawPos = new cc.Vec2(data.currentLocation.x, data.currentLocation.y);
-        rawPos.mulSelf(this.zoomScale);
-        this.arkMap.position = rawPos.neg();
+        this.arkMap.position = new cc.Vec2(0, 0);
     }
 
     onPanPadTouchMove(event: cc.Event.EventTouch) {
